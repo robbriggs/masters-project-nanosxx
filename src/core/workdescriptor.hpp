@@ -41,7 +41,8 @@
 using namespace nanos;
 
 inline WorkDescriptor::WorkDescriptor ( int ndevices, DeviceData **devs, size_t data_size, size_t data_align, void *wdata,
-                                 size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description )
+                                 size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description,
+                                 const void *llvmir )
                                : WorkGroup(), _data_size ( data_size ), _data_align( data_align ),  _data ( wdata ), _totalSize(0),
                                  _wdData ( NULL ), _flags(), _tie ( false ), _tiedTo ( NULL ),
                                  _state( INIT ), _syncCond( NULL ),  _parent ( NULL ), _myQueue ( NULL ), _depth ( 0 ),
@@ -51,13 +52,15 @@ inline WorkDescriptor::WorkDescriptor ( int ndevices, DeviceData **devs, size_t 
                                  _doSubmit(NULL), _doWait(), _depsDomain( sys.getDependenciesManager()->createDependenciesDomain() ), 
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ), _commutativeOwnerMap(NULL), _commutativeOwners(NULL), _wakeUpQueue( UINT_MAX ),
-                                 _copiesNotInChunk(false), _description(description), _instrumentationContextData()
+                                 _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
+                                 _workRepresentation( llvmir )
                                  {
                                     _flags.is_final = 0;
                                  }
 
 inline WorkDescriptor::WorkDescriptor ( DeviceData *device, size_t data_size, size_t data_align, void *wdata,
-                                 size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description )
+                                 size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description,
+                                 const void *llvmir )
                                : WorkGroup(), _data_size ( data_size ), _data_align ( data_align ), _data ( wdata ), _totalSize(0),
                                  _wdData ( NULL ), _flags(), _tie ( false ), _tiedTo ( NULL ),
                                  _state( INIT ), _syncCond( NULL ), _parent ( NULL ), _myQueue ( NULL ), _depth ( 0 ),
@@ -67,7 +70,8 @@ inline WorkDescriptor::WorkDescriptor ( DeviceData *device, size_t data_size, si
                                  _doSubmit(NULL), _doWait(), _depsDomain( sys.getDependenciesManager()->createDependenciesDomain() ),
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ),  _commutativeOwnerMap(NULL), _commutativeOwners(NULL),
-                                 _wakeUpQueue( UINT_MAX ), _copiesNotInChunk(false), _description(description), _instrumentationContextData()
+                                 _wakeUpQueue( UINT_MAX ), _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
+                                 _workRepresentation( llvmir )
                                  {
                                      _devices = new DeviceData*[1];
                                      _devices[0] = device;
@@ -86,7 +90,8 @@ inline WorkDescriptor::WorkDescriptor ( const WorkDescriptor &wd, DeviceData **d
                                  _directory(NULL), _submitted( false ), _implicit( wd._implicit ),_translateArgs( wd._translateArgs ),
                                  _priority( wd._priority ), _commutativeOwnerMap(NULL), _commutativeOwners(NULL),
                                  _wakeUpQueue( wd._wakeUpQueue ), 
-                                 _copiesNotInChunk( wd._copiesNotInChunk), _description(description), _instrumentationContextData()
+                                 _copiesNotInChunk( wd._copiesNotInChunk), _description(description), _instrumentationContextData(),
+                                 _workRepresentation( wd._workRepresentation )
                                  {
                                     _flags.is_final = false;
                                     _flags.is_ready = false;

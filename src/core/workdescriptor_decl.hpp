@@ -40,6 +40,8 @@
 
 #include "dependenciesdomain_fwd.hpp"
 
+#include "dependableobjectwr_decl.hpp"
+
 namespace nanos
 {
 
@@ -223,6 +225,8 @@ namespace nanos
 
          InstrumentationContextData    _instrumentationContextData; /**< Instrumentation Context Data (empty if no instr. enabled) */
 
+         DOWorkRepresentation          _workRepresentation;
+
       private: /* private methods */
          /*! \brief WorkDescriptor copy assignment operator (private)
           */
@@ -235,12 +239,14 @@ namespace nanos
          /*! \brief WorkDescriptor constructor - 1
           */
          WorkDescriptor ( int ndevices, DeviceData **devs, size_t data_size = 0, size_t data_align = 1, void *wdata=0,
-                          size_t numCopies = 0, CopyData *copies = NULL, nanos_translate_args_t translate_args = NULL, char *description = NULL );
+                          size_t numCopies = 0, CopyData *copies = NULL, nanos_translate_args_t translate_args = NULL, char *description = NULL,
+                          const void *llvmir = NULL);
 
          /*! \brief WorkDescriptor constructor - 2
           */
          WorkDescriptor ( DeviceData *device, size_t data_size = 0, size_t data_align = 1, void *wdata=0,
-                          size_t numCopies = 0, CopyData *copies = NULL, nanos_translate_args_t translate_args = NULL, char *description = NULL );
+                          size_t numCopies = 0, CopyData *copies = NULL, nanos_translate_args_t translate_args = NULL, char *description = NULL,
+                          const void *llvmir = NULL);
 
          /*! \brief WorkDescriptor copy constructor (using a given WorkDescriptor)
           *

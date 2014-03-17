@@ -22,17 +22,17 @@
 
 namespace nanos
 {
-
-   /*! \class DOSubmit
-    *  \brief DependableObject representing a WorkDescriptor as Dependable entity
-    */
+  
    class DOWorkRepresentation
    {
       private:
-        const void * const _llvmir;
+        const void *_llvmir;
+        const bool  _has_ir;
 
       public:
-        DOWorkRepresentation(const void * const llvmir);
+        DOWorkRepresentation(const void *llvmir);
+
+        bool has_ir() const;
 
    };
 

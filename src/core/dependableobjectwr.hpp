@@ -25,7 +25,10 @@
 
 using namespace nanos;
 
-
+inline bool DOWorkRepresentation::has_ir() const
+{
+   return _has_ir;
+}
 
 #endif
 
