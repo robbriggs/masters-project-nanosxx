@@ -47,6 +47,7 @@ void SchedulerConf::config (Config &cfg)
 
 void Scheduler::submit ( WD &wd )
 {
+   std::cout << "WD submitted to scheduler\n";
    NANOS_INSTRUMENT( InstrumentState inst(NANOS_SCHEDULING) );
    BaseThread *mythread = myThread;
 
@@ -104,6 +105,7 @@ void Scheduler::submit ( WD &wd )
 
 void Scheduler::submitAndWait ( WD &wd )
 {
+   std::cout << "Scheduler::submitAndWait\n";
    debug ( "submitting and waiting task " << wd.getId() );
    fatal ( "Scheduler::submitAndWait(): This feature is still not supported" );
 
@@ -120,6 +122,7 @@ void Scheduler::submitAndWait ( WD &wd )
 
 void Scheduler::updateCreateStats ( WD &wd )
 {
+   std::cout << "Scheduler::updateCreateStats\n";
    sys.getSchedulerStats()._createdTasks++;
    sys.getSchedulerStats()._totalTasks++;
    wd.setConfigured(); 
@@ -128,6 +131,7 @@ void Scheduler::updateCreateStats ( WD &wd )
 
 void Scheduler::updateExitStats ( WD &wd )
 {
+   std::cout << "Scheduler::updateExitStats\n";
    sys.throttleTaskOut();
    if ( wd.isConfigured() ) sys.getSchedulerStats()._totalTasks--;
 }
@@ -290,6 +294,7 @@ inline void Scheduler::idleLoop ()
 
 void Scheduler::waitOnCondition (GenericSyncCond *condition)
 {
+   std::cout << "Scheduler::waitOnCondition\n";
    NANOS_INSTRUMENT ( static InstrumentationDictionary *ID = sys.getInstrumentation()->getInstrumentationDictionary(); )
 
    NANOS_INSTRUMENT ( static nanos_event_key_t total_spins_key  = ID->getEventKey("num-spins"); )
@@ -468,6 +473,7 @@ void Scheduler::waitOnCondition (GenericSyncCond *condition)
 
 void Scheduler::wakeUp ( WD *wd )
 {
+   std::cout << "Scheduler::wakeUp\n";
    NANOS_INSTRUMENT( InstrumentState inst(NANOS_SYNCHRONIZATION) );
    
    if ( !wd->isReady() ) {
@@ -502,6 +508,7 @@ void Scheduler::wakeUp ( WD *wd )
 
 WD * Scheduler::prefetch( BaseThread *thread, WD &wd )
 {
+   std::cout << "Scheduler::prefetch\n";
    if ( sys.getSchedulerConf().getSchedulerEnabled() ) {
       //! If the scheduler is running
       //! The thread is not paused, mark it as so...
@@ -554,6 +561,7 @@ void Scheduler::workerLoop ()
 
 void Scheduler::finishWork( WD * wd, bool schedule )
 {
+   std::cout << "Scheduler::finishWork\n";
    /* If WorkDescriptor has been submitted update statistics */
    updateExitStats (*wd);
 
@@ -585,6 +593,7 @@ void Scheduler::finishWork( WD * wd, bool schedule )
 
 bool Scheduler::inlineWork ( WD *wd, bool schedule )
 {
+   std::cout << "Scheduler::inlineWork\n";
    BaseThread *thread = getMyThreadSafe();
 
    // run it in the current frame
@@ -641,6 +650,7 @@ bool Scheduler::inlineWork ( WD *wd, bool schedule )
 
 void Scheduler::switchHelper (WD *oldWD, WD *newWD, void *arg)
 {
+   std::cout << "Scheduler::switchHelper\n";
    myThread->switchHelperDependent(oldWD, newWD, arg);
 
    GenericSyncCond *syncCond = oldWD->getSyncCond();
@@ -656,6 +666,7 @@ void Scheduler::switchHelper (WD *oldWD, WD *newWD, void *arg)
 
 void Scheduler::switchTo ( WD *to )
 {
+   std::cout << "Scheduler::switchHelper\n";
    if ( myThread->runningOn()->supportsUserLevelThreads() ) {
       if (!to->started()) {
          to->init();
@@ -680,6 +691,7 @@ void Scheduler::switchTo ( WD *to )
 
 void Scheduler::yield ()
 {
+   std::cout << "Scheduler::yield\n";
    NANOS_INSTRUMENT( InstrumentState inst(NANOS_SCHEDULING) );
    // If the scheduler is running
    if ( sys.getSchedulerConf().getSchedulerEnabled() ) {
@@ -699,12 +711,14 @@ void Scheduler::yield ()
 
 void Scheduler::switchToThread ( BaseThread *thread )
 {
+   std::cout << "Scheduler::switchToThread\n";
    while ( getMyThreadSafe() != thread )
         yield();
 }
 
 void Scheduler::exitHelper (WD *oldWD, WD *newWD, void *arg)
 {
+   std::cout << "Scheduler::exitHelper\n";
     myThread->exitHelperDependent(oldWD, newWD, arg);
     myThread->setCurrentWD( *newWD );
     oldWD->~WorkDescriptor();
@@ -736,6 +750,7 @@ struct ExitBehaviour
 
 void Scheduler::exitTo ( WD *to )
  {
+   std::cout << "Scheduler::exitTo\n";
 //! \bug FIXME: stack reusing was wrongly implementd and it's disabled (see #374)
 //    WD *current = myThread->getCurrentWD();
 
@@ -755,6 +770,7 @@ void Scheduler::exitTo ( WD *to )
 
 void Scheduler::exit ( void )
 {
+      std::cout << "Scheduler::exit\n";
    // At this point the WD work is done, so we mark it as such and look for other work to do
    // Deallocation doesn't happen here because:
    // a) We are still running in the WD stack

@@ -34,6 +34,7 @@
 #include <string.h>
 #include <set>
 #include <climits>
+#include <iostream>
 
 #ifdef SPU_DEV
 #include "spuprocessor.hpp"
@@ -412,6 +413,7 @@ PE * System::createPE ( std::string pe_type, int pid, int uid )
 
 void System::start ()
 {
+  std::cout << "System start\n";
    if ( !_useCaches ) _cachePolicy = System::NONE;
    
    //! Load hwloc first, in order to make it available for modules
@@ -735,6 +737,7 @@ void System::createWD ( WD **uwd, size_t num_devices, nanos_device_t *devices, s
                         nanos_region_dimension_internal_t **dimensions, nanos_translate_args_t translate_args,
                         const char *description )
 {
+  std::cout << "creatingWD\n";
    ensure(num_devices > 0,"WorkDescriptor has no devices");
 
    unsigned int i;
