@@ -18,3 +18,9 @@ perfect_regions_sources = \
 	$(top_srcdir)/src/plugins/deps/basedependenciesdomain_decl.hpp \
 	$(top_srcdir)/src/plugins/deps/basedependenciesdomain.hpp \
 	$(END)
+
+prune_sources = \
+	$(top_srcdir)/src/plugins/deps/prune_deps.cpp \
+	$(top_srcdir)/src/plugins/deps/basedependenciesdomain_decl.hpp \
+	$(top_srcdir)/src/plugins/deps/basedependenciesdomain.hpp \
+	$(END)
