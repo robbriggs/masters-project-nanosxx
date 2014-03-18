@@ -20,14 +20,35 @@
 #ifndef _NANOS_DEPENDABLE_OBJECT_WR
 #define _NANOS_DEPENDABLE_OBJECT_WR
 
+// IMPORTANT:
+// Not to be included in any other file than dependentobjectwr.cpp 
+
+// LLVM headers first!
+#include "llvm/Analysis/Verifier.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
+#include "llvm/PassManager.h"
+#include "llvm/Support/IRReader.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/ValueSymbolTable.h"
+
 #include "dependableobjectwr_decl.hpp"
 #include "dependableobject.hpp"
 
 using namespace nanos;
 
+struct DOWorkRepresentation::DOWorkRepresentationInternals
+{
+	const void *llvmir;
+	bool        has_ir;
+};
+
 inline bool DOWorkRepresentation::has_ir() const
 {
-   return _has_ir;
+   return _internal->has_ir;
 }
 
 #endif

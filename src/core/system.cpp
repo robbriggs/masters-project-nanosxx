@@ -735,9 +735,10 @@ void System::createWD ( WD **uwd, size_t num_devices, nanos_device_t *devices, s
                         void **data, WG *uwg, nanos_wd_props_t *props, nanos_wd_dyn_props_t *dyn_props,
                         size_t num_copies, nanos_copy_data_t **copies, size_t num_dimensions,
                         nanos_region_dimension_internal_t **dimensions, nanos_translate_args_t translate_args,
-                        const char *description )
+                        const char *description, const void *llvmir )
 {
   std::cout << "creatingWD\n";
+  std::cout << "LLVMIR = "<<llvmir<<std::endl;
    ensure(num_devices > 0,"WorkDescriptor has no devices");
 
    unsigned int i;

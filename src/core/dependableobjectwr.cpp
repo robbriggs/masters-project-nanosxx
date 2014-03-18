@@ -21,17 +21,14 @@
 
 using namespace nanos;
 
-template <class T>
-static inline bool is_null(const T *ptr)
-{
-   return (ptr == NULL);
-}
-
 DOWorkRepresentation::DOWorkRepresentation(const void *llvmir)
-   : _llvmir(llvmir), _has_ir(is_null(llvmir))
+   : _internal(new DOWorkRepresentationInternals)
 { 
-   if (llvmir == NULL)
-      std::cout << "Its null\n";
-   else
-      std::cout << "Its not null\n";
+	_internal->llvmir = llvmir;
+	_internal->has_ir = !(llvmir == NULL);
+
+   if (_internal->has_ir)
+      return;
+
+   
 }

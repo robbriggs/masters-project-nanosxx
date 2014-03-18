@@ -180,9 +180,12 @@ common_sources=\
 	$(top_srcdir)/src/core/address.hpp \
 	$(top_srcdir)/src/core/basedependency_fwd.hpp \
 	$(top_srcdir)/src/core/basedependency_decl.hpp \
-	$(top_srcdir)/src/core/dependableobjectwr.hpp \
 	$(top_srcdir)/src/core/dependableobjectwr_decl.hpp \
 	$(top_srcdir)/src/core/dependableobjectwr_fwd.hpp \
+	$(END)
+
+llvm_sources=\
+	$(top_srcdir)/src/core/dependableobjectwr.hpp \
 	$(top_srcdir)/src/core/dependableobjectwr.cpp \
 	$(END)
 

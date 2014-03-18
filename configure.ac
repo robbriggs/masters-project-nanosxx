@@ -585,6 +585,21 @@ AC_SUBST([MCC])
 
 AC_MSG_CHECKING([for architecture])
 
+# LLVM support
+AC_ARG_WITH([llvm],
+AS_HELP_STRING([--with-llvm=dir], [Directory of llvm source]),
+  [
+      llvm_valid=yes
+    LLVM="${withval}"
+  ],
+  [
+      llvm_valid=no
+    LLVM=""
+  ])
+
+AC_SUBST([llvm_valid])
+AC_SUBST([LLVM])
+
 # Add architecture libraries
 for arch in $ARCHITECTURES; do
 	NANOS_CONFIG_LIBS_PERFO="$NANOS_CONFIG_LIBS_PERFO $NANOS_CONFIG_LIBS \$(abs_top_builddir)/src/arch/$arch/performance/lib$arch.la"
