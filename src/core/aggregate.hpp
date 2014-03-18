@@ -41,6 +41,18 @@ inline void Aggregate::set_value(double value)
 	_value._double = value;
 }
 
+inline void Aggregate::set_value(char value)
+{
+	_type = AGG_TYPE_CHAR;
+	_value._char = value;
+}
+
+inline void Aggregate::set_value(void *value)
+{
+	_type = AGG_TYPE_VOID_PTR;
+	_value._void_ptr = value;
+}
+
 inline Aggregate::AGG_TYPE Aggregate::get_type()
 {
 	return _type;
@@ -59,6 +71,16 @@ inline float Aggregate::get_float()
 inline double Aggregate::get_double()
 {
 	return _value._double;
+}
+
+inline char Aggregate::get_char()
+{
+	return _value._char;
+}
+
+inline void *Aggregate::get_void_ptr()
+{
+	return _value._void_ptr;
 }
 
 #endif
