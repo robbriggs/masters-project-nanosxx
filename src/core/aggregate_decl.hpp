@@ -72,13 +72,15 @@ namespace nanos
          void set_value(char value);
          void set_value(void *value);
 
-         AGG_TYPE get_type();
+         AGG_TYPE get_type() const;
 
-         int     get_int();
-         float   get_float();
-         double  get_double();
-         char    get_char();
-         void   *get_void_ptr();
+         int     get_int() const;
+         float   get_float() const;
+         double  get_double() const;
+         char    get_char() const;
+         void   *get_void_ptr() const;
+
+         bool operator==(const Aggregate &o) const;
    };
 
 };

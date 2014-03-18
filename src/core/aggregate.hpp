@@ -53,34 +53,58 @@ inline void Aggregate::set_value(void *value)
 	_value._void_ptr = value;
 }
 
-inline Aggregate::AGG_TYPE Aggregate::get_type()
+inline Aggregate::AGG_TYPE Aggregate::get_type() const
 {
 	return _type;
 }
 
-inline int Aggregate::get_int()
+inline int Aggregate::get_int() const
 {
 	return _value._int;
 }
 
-inline float Aggregate::get_float()
+inline float Aggregate::get_float() const
 {
 	return _value._float;
 }
 
-inline double Aggregate::get_double()
+inline double Aggregate::get_double() const
 {
 	return _value._double;
 }
 
-inline char Aggregate::get_char()
+inline char Aggregate::get_char() const
 {
 	return _value._char;
 }
 
-inline void *Aggregate::get_void_ptr()
+inline void *Aggregate::get_void_ptr() const
 {
 	return _value._void_ptr;
+}
+
+inline bool Aggregate::operator==(const Aggregate &o) const
+{
+	if (_type != o._type)
+		return false;
+
+	switch (_type)
+	{
+	case AGG_TYPE_NONE:
+		return true;
+	case AGG_TYPE_INT:
+		return get_int() == o.get_int();
+	case AGG_TYPE_FLOAT:
+		return get_float() == o.get_float();
+	case AGG_TYPE_DOUBLE:
+		return get_double() == o.get_double();
+	case AGG_TYPE_CHAR:
+		return get_char() == o.get_char();
+	case AGG_TYPE_VOID_PTR:
+		// Oh no...
+		return false;
+	}
+	return false;
 }
 
 #endif
