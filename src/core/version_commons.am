@@ -186,6 +186,10 @@ common_sources=\
 	$(top_srcdir)/src/core/aggregate_decl.hpp \
 	$(top_srcdir)/src/core/aggregate_fwd.hpp \
 	$(top_srcdir)/src/core/aggregate.cpp \
+	$(top_srcdir)/src/core/aggregate_cache.hpp \
+	$(top_srcdir)/src/core/aggregate_cache_decl.hpp \
+	$(top_srcdir)/src/core/aggregate_cache_fwd.hpp \
+	$(top_srcdir)/src/core/aggregate_cache.cpp \
 	$(END)
 
 llvm_sources=\
