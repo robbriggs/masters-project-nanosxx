@@ -182,6 +182,10 @@ common_sources=\
 	$(top_srcdir)/src/core/basedependency_decl.hpp \
 	$(top_srcdir)/src/core/dependableobjectwr_decl.hpp \
 	$(top_srcdir)/src/core/dependableobjectwr_fwd.hpp \
+	$(top_srcdir)/src/core/aggregate.hpp \
+	$(top_srcdir)/src/core/aggregate_decl.hpp \
+	$(top_srcdir)/src/core/aggregate_fwd.hpp \
+	$(top_srcdir)/src/core/aggregate.cpp \
 	$(END)
 
 llvm_sources=\
