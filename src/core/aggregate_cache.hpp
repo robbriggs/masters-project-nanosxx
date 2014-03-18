@@ -30,7 +30,7 @@ static unsigned find_cardinality(const typename AggregateCache<T>::ArgumentList 
 	unsigned count = 0;
 	for (it = list.begin(); it != list.end(); it++)
 	{
-		if ((*it).get_type() != Aggregate::AGG_TYPE_NONE)
+		if ((*it).get_type() != AggregateType::NONE)
 			++count;
 	}
 
@@ -57,7 +57,7 @@ void AggregateCache<T>::add(ArgumentList &key, T &value)
 template <class T>
 inline static bool pair_matches(typename AggregateCache<T>::ArgumentList &key, typename AggregateCache<T>::ArgumentList &lookup)
 {
-	return (key.get_type() == Aggregate::AGG_TYPE_NONE || key == lookup);
+	return (key.get_type() == AggregateType::NONE || key == lookup);
 }
 
 template <class T>

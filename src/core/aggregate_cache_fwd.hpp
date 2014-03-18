@@ -21,7 +21,7 @@
 
 namespace nanos
 {
-	template <class T>
+   template <class T>
    class AggregateCache<T>;
 }
 

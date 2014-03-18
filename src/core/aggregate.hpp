@@ -23,88 +23,180 @@
 
 using namespace nanos;
 
-inline void Aggregate::set_value(int value)
-{
-	_type = AGG_TYPE_INT;
-	_value._int = value;
-}
 
-inline void Aggregate::set_value(float value)
-{
-	_type = AGG_TYPE_FLOAT;
-	_value._float = value;
-}
 
-inline void Aggregate::set_value(double value)
-{
-	_type = AGG_TYPE_DOUBLE;
-	_value._double = value;
-}
+inline AggregateType::AggregateType(BaseType type, unsigned ptr_depth, unsigned size)
+	: _type(type), _ptr_depth(ptr_depth), _size(size) {}
 
-inline void Aggregate::set_value(char value)
-{
-	_type = AGG_TYPE_CHAR;
-	_value._char = value;
-}
-
-inline void Aggregate::set_value(void *value)
-{
-	_type = AGG_TYPE_VOID_PTR;
-	_value._void_ptr = value;
-}
-
-inline Aggregate::AGG_TYPE Aggregate::get_type() const
+inline AggregateType::BaseType AggregateType::type() const
 {
 	return _type;
 }
 
-inline int Aggregate::get_int() const
+inline unsigned AggregateType::ptr_depth() const
 {
-	return _value._int;
+	return _ptr_depth;
 }
 
-inline float Aggregate::get_float() const
+inline unsigned AggregateType::size() const
 {
-	return _value._float;
+	return _size;
 }
 
-inline double Aggregate::get_double() const
+inline bool AggregateType::operator==(const AggregateType::AggregateType& o) const
 {
-	return _value._double;
+	return type() == o.type() && size() == o.size() && ptr_depth() == o.ptr_depth();
 }
 
-inline char Aggregate::get_char() const
+// ---
+
+inline Aggregate::Aggregate(void* value, AggregateType::BaseType base_type, unsigned ptr_depth, unsigned size)
+   : _type(base_type, ptr_depth, size)
 {
-	return _value._char;
+	construct(value);
 }
 
-inline void *Aggregate::get_void_ptr() const
+inline Aggregate::Aggregate(void *value, AggregateType type)
+	: _type(type)
 {
-	return _value._void_ptr;
+	construct(value);
 }
 
-inline bool Aggregate::operator==(const Aggregate &o) const
+inline void Aggregate::construct(void *value)
 {
-	if (_type != o._type)
-		return false;
+	const AggregateType::BaseType base_type = _type.type();
+	const unsigned ptr_depth = _type.ptr_depth();
+	const unsigned size = _type.size();
 
-	switch (_type)
+   if (base_type == AggregateType::NONE)
+      return;
+
+   if (ptr_depth == 0)
+   {
+      // Just a primitive value
+      switch (base_type)
+      {
+      case (AggregateType::INT):
+         _value._int = *(int*)value;
+         break;
+      case (AggregateType::FLOAT):
+         _value._float = *(float*)value;
+         break;
+      case (AggregateType::DOUBLE):
+         _value._double = *(double*)value;
+         break;
+      case (AggregateType::CHAR):
+         _value._char = *(char*)value;
+         break;
+      case (AggregateType::NONE):
+      case (AggregateType::VOID):
+         break;
+      }
+      _valid_ptr = &_value;
+   }else{
+      // A pointer
+      switch (base_type)
+      {
+      case (AggregateType::INT):
+         _value._int_ptr = new int[size];
+         break;
+      case (AggregateType::FLOAT):
+         _value._float_ptr = new float[size];
+         break;
+      case (AggregateType::DOUBLE):
+         _value._double_ptr = new double[size];
+         break;
+      case (AggregateType::CHAR):
+         _value._char_ptr = new char[size];
+         break;
+      case (AggregateType::NONE):
+      case (AggregateType::VOID):
+         break;
+      }
+
+      _valid_ptr = &_value;
+      for (unsigned i = 1; i < ptr_depth; ++i)
+      {
+         void* new_ptr = new (void*)();
+         *(void**)new_ptr = _valid_ptr;
+         _valid_ptr = new_ptr;
+      }
+   }
+}
+
+inline Aggregate::~Aggregate()
+{
+	const unsigned depth = _type.ptr_depth();
+	if (depth != 0)
 	{
-	case AGG_TYPE_NONE:
-		return true;
-	case AGG_TYPE_INT:
-		return get_int() == o.get_int();
-	case AGG_TYPE_FLOAT:
-		return get_float() == o.get_float();
-	case AGG_TYPE_DOUBLE:
-		return get_double() == o.get_double();
-	case AGG_TYPE_CHAR:
-		return get_char() == o.get_char();
-	case AGG_TYPE_VOID_PTR:
-		// Oh no...
-		return false;
+		const AggregateType::BaseType base_type = _type.type();
+		void *current = _valid_ptr;
+		void *next = *(void**)_valid_ptr;
+
+		for (unsigned i = 1; i < depth; ++i)
+		{
+			switch (base_type)
+			{
+			case (AggregateType::INT):
+				delete (int*) current;
+				break;
+			case (AggregateType::FLOAT):
+				delete (float*) current;
+				break;
+			case (AggregateType::DOUBLE):
+				delete (double*) current;
+				break;
+			case (AggregateType::CHAR):
+				delete (char*) current;
+				break;
+			case (AggregateType::NONE):
+				case (AggregateType::VOID):
+				break;
+			}
+			delete (int*) current;
+			current = next;
+			next = *(void**)current;
+		}
 	}
-	return false;
 }
+
+template <class T>
+static inline bool aggregate_data_match(const unsigned size, const void *mine_void, const void *theirs_void)
+{
+	const T *mine = static_cast<const T*>(mine_void);
+	const T *theirs = static_cast<const T*>(theirs_void);
+
+	for (unsigned i = 0; i < size; ++i)
+	{
+		if (mine[i] != theirs[i])
+			return false;
+	}
+	return true;
+}
+
+inline bool Aggregate::operator==(const Aggregate& o) const
+{
+	if (!( _type == o._type ))
+		return false;
+
+	const AggregateType::BaseType base_type = _type.type();
+	const unsigned size = _type.size();
+
+	switch (base_type)
+	{
+	case (AggregateType::INT):
+		return aggregate_data_match<int>(size, _valid_ptr, o._valid_ptr);
+	case (AggregateType::FLOAT):
+		return aggregate_data_match<float>(size, _valid_ptr, o._valid_ptr);
+	case (AggregateType::DOUBLE):
+		return aggregate_data_match<double>(size, _valid_ptr, o._valid_ptr);
+	case (AggregateType::CHAR):
+		return aggregate_data_match<char>(size, _valid_ptr, o._valid_ptr);
+	case (AggregateType::NONE):
+	case (AggregateType::VOID):
+		return false; // Shouldn't get here
+	}
+}
+      
 
 #endif

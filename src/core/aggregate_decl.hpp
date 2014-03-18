@@ -25,62 +25,64 @@
 namespace nanos
 {
 
+   class AggregateType
+   {
+   public:
+      enum BaseType
+      {
+         NONE,
+         INT,
+         FLOAT,
+         DOUBLE,
+         CHAR,
+         VOID
+      };
+
+   private:
+      BaseType _type;
+      unsigned _ptr_depth;
+      unsigned _size;
+
+   public:
+      inline AggregateType(BaseType type, unsigned ptr_depth, unsigned size);
+      inline BaseType type() const;
+      inline unsigned ptr_depth() const;
+      inline unsigned size() const;
+      inline bool operator==(const AggregateType& o) const;
+   };
+
    class Aggregate
    {
-      public:
-         enum AGG_TYPE
-         {
-            AGG_TYPE_NONE,
-            AGG_TYPE_INT,
-            AGG_TYPE_FLOAT,
-            AGG_TYPE_DOUBLE,
-            AGG_TYPE_CHAR,
-            AGG_TYPE_VOID_PTR
-         };
+   private:
+      union
+      {
+         int     _int;
+         float   _float;
+         double  _double;
+         char    _char;
 
-         union AGG_VALUE
-         {
-            int     _int;
-            float   _float;
-            double  _double;
-            char    _char;
-            void   *_void_ptr;
+         // Pointer to place actual value is in memory
+         int    *_int_ptr;
+         float  *_float_ptr;
+         double *_double_ptr;
+         char   *_char_ptr;
+      } _value;
 
-            AGG_VALUE();
-            AGG_VALUE(int value)    : _int(value) {}
-            AGG_VALUE(float value)  : _float(value) {}
-            AGG_VALUE(double value) : _double(value) {}
-            AGG_VALUE(char value)   : _char(value) {}
-            AGG_VALUE(void *value)  : _void_ptr(value) {}
-         };
+      // Pointer valid inside code
+      void* _valid_ptr;
 
-      private:
-         AGG_TYPE  _type;
-         AGG_VALUE _value;
+      AggregateType _type;
 
-      public:
-         Aggregate()             : _type(AGG_TYPE_NONE) {}
-         Aggregate(int value)    : _type(AGG_TYPE_INT), _value(value) {}
-         Aggregate(float value)  : _type(AGG_TYPE_FLOAT), _value(value) {}
-         Aggregate(double value) : _type(AGG_TYPE_DOUBLE), _value(value) {}
-         Aggregate(char value)   : _type(AGG_TYPE_CHAR), _value(value) {}
-         Aggregate(void *value)  : _type(AGG_TYPE_VOID_PTR), _value(value) {}
+      Aggregate(void *value, AggregateType::BaseType base_type, unsigned ptr_depth = 0, unsigned size = 0);
+      Aggregate(void *value, AggregateType type);
+      ~Aggregate();
 
-         void set_value(int value);
-         void set_value(float value);
-         void set_value(double value);
-         void set_value(char value);
-         void set_value(void *value);
+      bool operator==(const Aggregate& o) const;
 
-         AGG_TYPE get_type() const;
+   private:
+      void construct(void *value);
 
-         int     get_int() const;
-         float   get_float() const;
-         double  get_double() const;
-         char    get_char() const;
-         void   *get_void_ptr() const;
 
-         bool operator==(const Aggregate &o) const;
    };
 
 };
