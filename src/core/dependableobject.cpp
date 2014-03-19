@@ -53,35 +53,41 @@ void DependableObject::finished ( )
          }
       }
 
-      DependableObject::DependableObjectVector &succ = depObj.getSuccessors();
-      for ( DependableObject::DependableObjectVector::iterator it = succ.begin(); it != succ.end(); it++ ) {
+      DependableObject::DependableObjectDependencyDescVector &succ = depObj.getSuccessors();
+      for ( DependableObject::DependableObjectDependencyDescVector::iterator it = succ.begin(); it != succ.end(); it++ ) {
 
-         NANOS_INSTRUMENT ( instrument ( *(*it) ); ) 
+         NANOS_INSTRUMENT ( instrument ( *((*it).object()) ); ) 
 
-         (*it)->decreasePredecessors();
+         const DependableObjectDependencyDesc &desc = *it;
+         if (desc.active())
+            desc.object()->decreasePredecessors();
       }
    }
 }
 
+// RESEARCH THIS FUNCTION
 DependableObject * DependableObject::releaseImmediateSuccessor ( DependableObjectPredicate &condition )
 {
    DependableObject * found = NULL;
 
-   DependableObject::DependableObjectVector &succ = getSuccessors();
-   DependableObject::DependableObjectVector incorrectlyErased;
+   DependableObject::DependableObjectDependencyDescVector &succ = getSuccessors();
+   DependableObject::DependableObjectDependencyDescVector incorrectlyErased;
 
    {
       SyncLockBlock lock( this->getLock() );
       // NOTE: it gets incremented in the erase
-      for ( DependableObject::DependableObjectVector::iterator it = succ.begin(); it != succ.end(); ) {
-         // Is this an immediate successor? 
-         if ( (*it)->numPredecessors() == 1 && condition(**it) && !((*it)->waits()) ) {
+      for ( DependableObject::DependableObjectDependencyDescVector::iterator it = succ.begin(); it != succ.end(); ) {
+         // Is this an immediate successor?
+         DependableObject *object = (*it).object();
+         bool active = (*it).active();
+         if ( object->numPredecessors() == 1 && condition(*object) && !(object->waits()) ) {
             // remove it
-            found = *it;
-            if ((*it)->isSubmitted()) {
+            found = object;
+            if (object->isSubmitted()) {
                succ.erase(it++);
                if ( found->numPredecessors() != 1 ) {
-                  incorrectlyErased.insert( found );
+                  DependableObjectDependencyDesc new_val(found, active);
+                  incorrectlyErased.insert( new_val );
                   found = NULL;
                } else {
                   NANOS_INSTRUMENT ( instrument ( *found ); )
@@ -93,7 +99,7 @@ DependableObject * DependableObject::releaseImmediateSuccessor ( DependableObjec
             it++;
          }
       }
-      for ( DependableObject::DependableObjectVector::iterator it = incorrectlyErased.begin(); it != incorrectlyErased.end(); it++) {
+      for ( DependableObject::DependableObjectDependencyDescVector::iterator it = incorrectlyErased.begin(); it != incorrectlyErased.end(); it++) {
          succ.insert(*it);
       }
    }

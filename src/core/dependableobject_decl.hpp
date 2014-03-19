@@ -41,6 +41,21 @@ namespace nanos
          virtual bool operator() (DependableObject &obj) = 0;
    };
 
+   class DependableObjectDependencyDesc
+   {
+      private:
+         DependableObject *_obj;
+         bool              _active;
+
+      public:
+         DependableObjectDependencyDesc(DependableObject *_obj, bool _active);
+
+         DependableObject *object() const;
+         bool              active() const;
+         void              set_active(bool active);
+
+         bool operator <(const DependableObjectDependencyDesc& rhs) const;
+   };
 
    /*! \class DependableObject
     *  \brief Abstract entity submitted to the Dependency system
@@ -71,19 +86,19 @@ namespace nanos
    class DependableObject
    {
       public:
-         typedef std::set<DependableObject *> DependableObjectVector; /**< Type vector of successors  */
+         typedef std::set<DependableObjectDependencyDesc> DependableObjectDependencyDescVector; /**< Type vector of successors  */
          typedef std::vector<BaseDependency*> TargetVector; /**< Type vector of output objects */
          
       private:
-         unsigned int             _id;              /**< DependableObject identifier */
-         Atomic<unsigned int>     _numPredecessors; /**< Number of predecessors locking this object */
-         unsigned int             _references;      /** References counter */
-         DependableObjectVector   _successors;      /**< List of successiors */
-         DependenciesDomain      *_domain;          /**< DependenciesDomain where this is located */
-         TargetVector             _outputObjects;   /**< List of output objects */
-         TargetVector             _readObjects;     /**< List of read objects */
-         Lock                     _objectLock;      /**< Lock to do exclusive use of the DependableObject */
-         volatile bool            _submitted;
+         unsigned int                            _id;              /**< DependableObject identifier */
+         Atomic<unsigned int>                    _numPredecessors; /**< Number of predecessors locking this object */
+         unsigned int                            _references;      /** References counter */
+         DependableObjectDependencyDescVector    _successors;      /**< List of successiors */
+         DependenciesDomain                     *_domain;          /**< DependenciesDomain where this is located */
+         TargetVector                            _outputObjects;   /**< List of output objects */
+         TargetVector                            _readObjects;     /**< List of read objects */
+         Lock                                    _objectLock;      /**< Lock to do exclusive use of the DependableObject */
+         volatile bool                           _submitted;
 
       public:
         /*! \brief DependableObject default constructor
@@ -169,7 +184,7 @@ namespace nanos
         /*! \brief Obtain the list of successors
          *  \return List of DependableObject* that depend on "this"
          */
-         DependableObjectVector & getSuccessors ( );
+         DependableObjectDependencyDescVector & getSuccessors ( );
 
         /*! \brief Add a successor to the successors list
          *  \param depObj DependableObject to be added.

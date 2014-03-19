@@ -31,6 +31,34 @@
 
 using namespace nanos;
 
+inline DependableObjectDependencyDesc::DependableObjectDependencyDesc(DependableObject *obj, bool active)
+   : _obj(obj), _active(active)
+{
+
+}
+
+inline DependableObject *DependableObjectDependencyDesc::object() const
+{
+   return _obj;
+}
+
+inline bool DependableObjectDependencyDesc::active() const
+{
+   return _active;
+}
+
+inline void DependableObjectDependencyDesc::set_active(bool active)
+{
+   _active = active;
+}
+
+inline bool DependableObjectDependencyDesc::operator <(const DependableObjectDependencyDesc& rhs) const
+{
+   return _obj < rhs._obj;
+}
+
+// ---
+
 inline DependableObject::~DependableObject ( )
 {
    std::for_each(_outputObjects.begin(),_outputObjects.end(),deleter<BaseDependency>);
@@ -99,14 +127,15 @@ inline int DependableObject::numPredecessors () const
    return _numPredecessors.value();
 }
 
-inline DependableObject::DependableObjectVector & DependableObject::getSuccessors ( )
+inline DependableObject::DependableObjectDependencyDescVector & DependableObject::getSuccessors ( )
 {
    return _successors;
 }
 
 inline bool DependableObject::addSuccessor ( DependableObject &depObj )
 {
-   return _successors.insert ( &depObj ).second;
+   DependableObjectDependencyDesc new_val(&depObj, true);
+   return _successors.insert ( new_val  ).second;
 }
 
 inline DependenciesDomain * DependableObject::getDependenciesDomain ( ) const
