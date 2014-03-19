@@ -89,7 +89,7 @@ void WorkDescriptor::prepareDevice ()
    }
 
    // Choose between the supported devices
-   message("No active device --> selecting one");
+   nano_message("No active device --> selecting one");
    _activeDeviceIdx = _numDevices - 1;
 }
 

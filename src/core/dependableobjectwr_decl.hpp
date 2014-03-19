@@ -24,6 +24,18 @@
 // All references to LLVM have been move to dependableobjectwr.cpp/hpp
 // to remove build complications
 
+#include "llvm/Analysis/Verifier.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
+#include "llvm/PassManager.h"
+#include "llvm/Support/IRReader.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/ValueSymbolTable.h"
+
+
 namespace nanos
 {
 

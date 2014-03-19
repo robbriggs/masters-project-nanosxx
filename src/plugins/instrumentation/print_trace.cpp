@@ -1,4 +1,4 @@
-#define __STDC_FORMAT_MACROS
+//#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include "plugin.hpp"
 #include "system.hpp"

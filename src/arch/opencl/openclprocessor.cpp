@@ -927,10 +927,10 @@ static inline std::string bytesToHumanReadable ( size_t bytes )
 void OpenCLProcessor::printStats ()
 {
    waitForEvents();
-   message("OpenCL dev" << _devId << " TRANSFER STATISTICS");
-   message("    Total input transfers: " << bytesToHumanReadable( _cache._bytesIn.value() ) );
-   message("    Total output transfers: " << bytesToHumanReadable( _cache._bytesOut.value() ) );
-   message("    Total dev2dev(in) transfers: " << bytesToHumanReadable( _cache._bytesDevice.value() ) );
+   nano_message("OpenCL dev" << _devId << " TRANSFER STATISTICS");
+   nano_message("    Total input transfers: " << bytesToHumanReadable( _cache._bytesIn.value() ) );
+   nano_message("    Total output transfers: " << bytesToHumanReadable( _cache._bytesOut.value() ) );
+   nano_message("    Total dev2dev(in) transfers: " << bytesToHumanReadable( _cache._bytesDevice.value() ) );
 }
  
 

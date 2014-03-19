@@ -340,34 +340,34 @@ namespace ext
                {
                   // Do not print stats if no data were recorded
                   if ( _wdExecStatsKeys.size() ) {
-                     message( "VERSIONING SCHEDULER RECORDS" );
-                     message( "BEST RECORDS" );
+                     nano_message( "VERSIONING SCHEDULER RECORDS" );
+                     nano_message( "BEST RECORDS" );
 
                      for ( std::set<WDExecInfoKey>::iterator it = _wdExecStatsKeys.begin(); it != _wdExecStatsKeys.end(); it++ ) {
                         WDBestRecordKey key = *it;
                         WDBestRecordData &data = _wdExecBest[key];
 
-                        message( "    Best version found for groupId " << key.first << ", paramSize " << key.second << ":");
-                        message( "    versionId: " << data._versionId << ", PE: " << data._pe->getDeviceType().getName() << ", time: " << data._elapsedTime );
+                        nano_message( "    Best version found for groupId " << key.first << ", paramSize " << key.second << ":");
+                        nano_message( "    versionId: " << data._versionId << ", PE: " << data._pe->getDeviceType().getName() << ", time: " << data._elapsedTime );
                      }
 
-                     message( "GENERAL STATISTICS" );
+                     nano_message( "GENERAL STATISTICS" );
 
                      for ( std::set<WDExecInfoKey>::iterator it = _wdExecStatsKeys.begin(); it != _wdExecStatsKeys.end(); it++ ) {
                         WDExecInfoKey key = *it;
                         WDExecInfoData &data = _wdExecStats[key];
 
-                        message( "    Statistics for groupId " << key.first << ", paramSize " << key.second << ":");
+                        nano_message( "    Statistics for groupId " << key.first << ", paramSize " << key.second << ":");
                         for ( unsigned int i = 0; i < data.size(); i++ ) {
                            WDExecRecord &record = data[i];
                            if ( record._pe == NULL ) {
                               if ( record._numAssigned.value() != _minRecordTrial ) {
-                                 message( "    PE: " << "Device is NULL" << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
+                                 nano_message( "    PE: " << "Device is NULL" << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
                               } else {
-                                 message( "    PE: " << "Device not present" << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
+                                 nano_message( "    PE: " << "Device not present" << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
                               }
                            } else {
-                              message( "    PE: " << record._pe->getDeviceType().getName() << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
+                              nano_message( "    PE: " << record._pe->getDeviceType().getName() << ", elapsed time: " << record._elapsedTime << " us, #records: " << record._numAssigned.value() );
                            }
                         }
                      }

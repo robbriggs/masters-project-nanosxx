@@ -32,3 +32,8 @@ DOWorkRepresentation::DOWorkRepresentation(const void *llvmir)
 
    
 }
+
+DOWorkRepresentation::~DOWorkRepresentation()
+{
+
+}

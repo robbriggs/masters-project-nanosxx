@@ -184,10 +184,10 @@ namespace ext
 
          void printStats ()
          {
-            message("GPU " << _gpuDevice << " TRANSFER STATISTICS");
-            message("    Total input transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesIn.value() ) );
-            message("    Total output transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesOut.value() ) );
-            message("    Total device transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesDevice.value() ) );
+            nano_message("GPU " << _gpuDevice << " TRANSFER STATISTICS");
+            nano_message("    Total input transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesIn.value() ) );
+            nano_message("    Total output transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesOut.value() ) );
+            nano_message("    Total device transfers: " << bytesToHumanReadable( _gpuProcessorStats._bytesDevice.value() ) );
          }
    };
 

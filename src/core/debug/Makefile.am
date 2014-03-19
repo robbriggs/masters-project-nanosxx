@@ -24,7 +24,7 @@ if DEBUG_VERSION
 debug_LTLIBRARIES=libnanox.la
 
 nanos_cxxflags=$(common_includes) $(common_debug_cxxflags) 
-nanos_ldflags=$(version_flags) @NANOS_CONFIG_LIBDIRS@ -Wl,-rpath,$(debugdir) $(ignore_muldefs) $(hwloc_ldflags)
+nanos_ldflags=$(version_flags) @NANOS_CONFIG_LIBDIRS@ -Wl,-rpath,$(debugdir) $(ignore_muldefs) $(hwloc_ldflags) -L/home/ugrads/coms2010/rb0262/linux/user-pool/llvm/lib -lclangFrontend -lclangSerialization -lclangDriver -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangRewrite -lclangAST -lclangLex -lclangBasic -lLLVMInstrumentation -lLLVMAsmParser -lLLVMipo -lLLVMBitWriter -lLLVMBitReader -lLLVMX86CodeGen -lLLVMX86Desc -lLLVMX86Info -lLLVMX86AsmPrinter -lLLVMX86Utils -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMMCParser -lLLVMInterpreter -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore -lLLVMSupport -lpthread -ldl -lm
 
 libnanox_la_CFLAGS=$(common_cflags) $(common_debug_cflags)
 libnanox_la_CXXFLAGS=$(nanos_cxxflags)

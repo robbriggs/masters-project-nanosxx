@@ -60,7 +60,7 @@ namespace nanos
 #define warning(msg) { std::cerr << "WARNING: [" << getMyThreadSafe()->getId() << "]" << msg << std::endl; }
 #define warning0(msg) { std::cerr << "WARNING: [?]" << msg << std::endl; }
 
-#define message(msg) \
+#define nano_message(msg) \
    std::cerr << "MSG: [" << getMyThreadSafe()->getId() << "] " << msg << std::endl;
 #define message0(msg) \
    std::cerr << "MSG: [?] " << msg << std::endl;
