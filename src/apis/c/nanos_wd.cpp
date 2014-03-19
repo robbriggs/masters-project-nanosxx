@@ -108,10 +108,11 @@ NANOS_API_DEF(nanos_err_t, nanos_get_wd_description, ( char **description, nanos
  *  \sa nanos::WorkDescriptor
  */
 NANOS_API_DEF( nanos_err_t, nanos_create_wd_compact, ( nanos_wd_t *uwd, nanos_const_wd_definition_t *const_data_ext, nanos_wd_dyn_props_t *dyn_props,
-                                                       size_t data_size, void ** data, nanos_wg_t uwg, nanos_copy_data_t **copies, nanos_region_dimension_internal_t **dimensions, const void* llvmir ) )
+                                                       size_t data_size, void ** data, nanos_wg_t uwg, nanos_copy_data_t **copies, nanos_region_dimension_internal_t **dimensions, const unsigned char llvmir_start[], const unsigned char llvmir_end[] ) )
 {
    std::cout << "In nanos_create_wd_compact, size = " << data_size << "\n";
    NANOS_INSTRUMENT( InstrumentStateAndBurst inst("api","*_create_wd",NANOS_CREATION) );
+   printf("create_dw_compact %p-%p\n", llvmir_start, llvmir_end);
 
    nanos_const_wd_definition_internal_t *const_data = reinterpret_cast<nanos_const_wd_definition_internal_t*>(const_data_ext);
 
@@ -127,7 +128,7 @@ NANOS_API_DEF( nanos_err_t, nanos_create_wd_compact, ( nanos_wd_t *uwd, nanos_co
       }
       sys.createWD ( (WD **) uwd, const_data->num_devices, const_data->devices, data_size, const_data->data_alignment,
                      (void **) data, (WG *) uwg, &const_data->props, dyn_props, const_data->num_copies, copies,
-                     const_data->num_dimensions, dimensions, NULL, const_data->description, llvmir );
+                     const_data->num_dimensions, dimensions, NULL, const_data->description, llvmir_start, llvmir_end );
 
    } catch ( nanos_err_t e) {
       return e;

@@ -20,10 +20,6 @@
 #ifndef _NANOS_DEPENDABLE_OBJECT_WR_DECL
 #define _NANOS_DEPENDABLE_OBJECT_WR_DECL
 
-// IMPORTANT:
-// All references to LLVM have been move to dependableobjectwr.cpp/hpp
-// to remove build complications
-
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
@@ -42,12 +38,14 @@ namespace nanos
    class DOWorkRepresentation
    {
       private:
-      	// All member variables are in _internal to hide LLVM types
-      	struct DOWorkRepresentationInternals;
-        DOWorkRepresentationInternals * const _internal;
+      const unsigned char *_llvmir_start;
+      const unsigned char *_llvmir_end;
+      llvm::LLVMContext _context;
+      llvm::Module* _module;
 
       public:
-        DOWorkRepresentation(const void *llvmir);
+        DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[]);
+        DOWorkRepresentation(const DOWorkRepresentation& work_representation);
         ~DOWorkRepresentation();
 
         bool has_ir() const;

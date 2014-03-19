@@ -21,16 +21,22 @@
 
 using namespace nanos;
 
-DOWorkRepresentation::DOWorkRepresentation(const void *llvmir)
-   : _internal(new DOWorkRepresentationInternals)
-{ 
-	_internal->llvmir = llvmir;
-	_internal->has_ir = !(llvmir == NULL);
+DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[])
+	: _llvmir_start(llvmir_start), _llvmir_end(llvmir_end)
+{
+	if (llvmir_start == NULL)
+		return;
 
-   if (_internal->has_ir)
-      return;
+	// Parse IR text
+	std::string ir(llvmir_start, llvmir_end);
+	llvm::SMDiagnostic err;
+	llvm::MemoryBuffer *buf = llvm::MemoryBuffer::getMemBuffer(ir);
+	_module = ParseIR(buf, err, _context);
+}
 
-   
+DOWorkRepresentation::DOWorkRepresentation(const DOWorkRepresentation &work_representation)
+{
+
 }
 
 DOWorkRepresentation::~DOWorkRepresentation()
