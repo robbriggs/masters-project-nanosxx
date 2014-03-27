@@ -737,7 +737,8 @@ void System::createWD ( WD **uwd, size_t num_devices, nanos_device_t *devices, s
                         void **data, WG *uwg, nanos_wd_props_t *props, nanos_wd_dyn_props_t *dyn_props,
                         size_t num_copies, nanos_copy_data_t **copies, size_t num_dimensions,
                         nanos_region_dimension_internal_t **dimensions, nanos_translate_args_t translate_args,
-                        const char *description, const unsigned char llvmir_start[], const unsigned char llvmir_end[])
+                        const char *description, const unsigned char llvmir_start[], const unsigned char llvmir_end[],
+                        const unsigned char llvm_function[])
 {
   std::cout << "creatingWD\n";
   //std::cout << "LLVMIR = "<<llvmir_start<<std::endl;
@@ -828,7 +829,8 @@ void System::createWD ( WD **uwd, size_t num_devices, nanos_device_t *devices, s
    }
 
    WD * wd =  new (*uwd) WD( num_devices, dev_ptrs, data_size, data_align, data != NULL ? *data : NULL,
-                             num_copies, (copies != NULL)? *copies : NULL, translate_args, desc, llvmir_start, llvmir_end );
+                             num_copies, (copies != NULL)? *copies : NULL, translate_args, desc,
+                             llvmir_start, llvmir_end, llvm_function );
    // Set WD's socket
    wd->setSocket( getCurrentSocket() );
    

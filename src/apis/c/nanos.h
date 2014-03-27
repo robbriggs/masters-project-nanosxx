@@ -186,7 +186,7 @@ NANOS_API_DECL(nanos_slicer_t, nanos_find_slicer, ( const char * slicer ));
 NANOS_API_DECL(nanos_ws_t, nanos_find_worksharing, ( const char * label ) );
 
 NANOS_API_DECL(nanos_err_t, nanos_create_wd_compact, ( nanos_wd_t *wd, nanos_const_wd_definition_t *const_data, nanos_wd_dyn_props_t *dyn_props,
-                                                       size_t data_size, void ** data, nanos_wg_t wg, nanos_copy_data_t **copies, nanos_region_dimension_internal_t **dimensions, const unsigned char llvmir_start[], const unsigned char llvm_end[] ));
+                                                       size_t data_size, void ** data, nanos_wg_t wg, nanos_copy_data_t **copies, nanos_region_dimension_internal_t **dimensions, const unsigned char llvmir_start[], const unsigned char llvm_end[], const unsigned char llvm_function[] ));
 
 NANOS_API_DECL(nanos_err_t, nanos_set_translate_function, ( nanos_wd_t wd, nanos_translate_args_t translate_args ));
 

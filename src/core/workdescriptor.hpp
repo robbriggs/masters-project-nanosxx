@@ -37,12 +37,13 @@
 #include "dependenciesdomain.hpp"
 #include "allocator_decl.hpp"
 #include "system.hpp"
+#include "dependableobjectwr.hpp"
 
 using namespace nanos;
 
 inline WorkDescriptor::WorkDescriptor ( int ndevices, DeviceData **devs, size_t data_size, size_t data_align, void *wdata,
                                  size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description,
-                                 const unsigned char llvmir_start[], const unsigned char llvmir_end[] )
+                                 const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[] )
                                : WorkGroup(), _data_size ( data_size ), _data_align( data_align ),  _data ( wdata ), _totalSize(0),
                                  _wdData ( NULL ), _flags(), _tie ( false ), _tiedTo ( NULL ),
                                  _state( INIT ), _syncCond( NULL ),  _parent ( NULL ), _myQueue ( NULL ), _depth ( 0 ),
@@ -53,14 +54,14 @@ inline WorkDescriptor::WorkDescriptor ( int ndevices, DeviceData **devs, size_t 
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ), _commutativeOwnerMap(NULL), _commutativeOwners(NULL), _wakeUpQueue( UINT_MAX ),
                                  _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
-                                 _workRepresentation( llvmir_start, llvmir_end )
+                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function )
                                  {
                                     _flags.is_final = 0;
                                  }
 
 inline WorkDescriptor::WorkDescriptor ( DeviceData *device, size_t data_size, size_t data_align, void *wdata,
                                  size_t numCopies, CopyData *copies, nanos_translate_args_t translate_args, char *description,
-                                 const unsigned char *llvmir_start, const unsigned char *llvmir_end )
+                                 const unsigned char *llvmir_start, const unsigned char *llvmir_end, const unsigned char llvm_function[] )
                                : WorkGroup(), _data_size ( data_size ), _data_align ( data_align ), _data ( wdata ), _totalSize(0),
                                  _wdData ( NULL ), _flags(), _tie ( false ), _tiedTo ( NULL ),
                                  _state( INIT ), _syncCond( NULL ), _parent ( NULL ), _myQueue ( NULL ), _depth ( 0 ),
@@ -71,7 +72,7 @@ inline WorkDescriptor::WorkDescriptor ( DeviceData *device, size_t data_size, si
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ),  _commutativeOwnerMap(NULL), _commutativeOwners(NULL),
                                  _wakeUpQueue( UINT_MAX ), _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
-                                 _workRepresentation( llvmir_start, llvmir_end )
+                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function )
                                  {
                                      _devices = new DeviceData*[1];
                                      _devices[0] = device;
@@ -347,6 +348,13 @@ inline void WorkDescriptor::setImplicit( bool b ) { _implicit = b; }
 inline bool WorkDescriptor::isImplicit( void ) { return _implicit; } 
 
 inline char * WorkDescriptor::getDescription ( void ) const  { return _description; }
+
+inline void WorkDescriptor::JITCompile()
+{
+   std::cout << "IN JISTOCMPIAWEF\n";
+   if (_workRepresentation.has_ir())
+      _workRepresentation.JITCompile(_data);
+}
 
 #endif
 
