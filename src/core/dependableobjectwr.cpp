@@ -25,19 +25,33 @@
 #include "llvm/Support/IRBuilder.h"
 #include "llvm/PassManager.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 
 using namespace nanos;
+
+static inline void InitializeLLVM()
+{
+	static bool done_before = false;
+	if (!done_before)
+	{
+		llvm::InitializeNativeTarget();
+	}
+}
 
 DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[])
 	: _llvmir_start(llvmir_start), _llvmir_end(llvmir_end)
 {
-	if (llvmir_start == NULL)
+	if (llvmir_start == NULL){
+		std::cout << "++ Starting DOWR with NO LLVM\n";
 		return;
-
-	_func_name = std::string((const char*)llvm_function);
+	} else {
+		std::cout << "++ Starting DOWR with LLVM\n";
+	}
 
 	if (llvmir_start == llvmir_end)
 		std::cout << "WARNING: llvmir_start == llvmir_end\n";
+
+	InitializeLLVM();
 
 	// Parse IR text
 	std::string ir(llvmir_start, llvmir_end);
@@ -46,10 +60,11 @@ DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], c
 
 	_module = ParseIR(buf, err, _context);
 
+	 _packed_name = std::string((const char*)llvm_function);
 	std::stringstream ss;
-	ss << _func_name << "_unpacked";
-	_llvm_func = _module->getFunction(ss.str());
-	_table = &_llvm_func->getValueSymbolTable();
+	ss << _packed_name << "_unpacked";
+	_unpacked_name = ss.str();
+	std::cout << "End of construct\n";
 	
 	//std::cout << "*****\n******\n*******\nLooking for " << _func_name << std::endl;
 }
@@ -64,20 +79,6 @@ DOWorkRepresentation::~DOWorkRepresentation()
 
 }
 
-void DOWorkRepresentation::JITCompile(void *data)
-{
-	hardcode(data);
-}
-/*
-static llvm::Constant *create_int_element(llvm::Type &element_type, void *data)
-{
-	printf("data : %p\n",data);
-	int *cast_data = (int *)data;
-	printf("cast_data : %p\n", cast_data);
-	uint64_t value = static_cast<uint64_t>(*cast_data);
-	return llvm::ConstantInt::get(&element_type, *cast_data);
-}
-
 template <typename T>
 static inline T *dereference_type(T *ptr_type)
 {
@@ -85,69 +86,10 @@ static inline T *dereference_type(T *ptr_type)
 	return static_cast<T *>(*it);
 }
 
-static std::string add_global_var(llvm::Module* module, llvm::StructType *type, void *data)
-{
-	std::vector<llvm::Constant *> struct_internal;
-	std::cout <<"About to deref\n";
-	llvm::StructType *struct_type = dereference_type(type);
-	const unsigned struct_size = struct_type->getNumElements();
-
-	llvm::StructType::element_iterator element_type_it = struct_type->element_begin();
-	for (unsigned i = 0; i < struct_size; ++i, element_type_it++)
-	{
-		std::cout <<"Loop start\n";
-		element_type->dump();
-		llvm::Type *element_type = *element_type_it;
-		const llvm::Type::TypeID id = element_type->getTypeID();
-	}*/
-	/*
-	std::vector<llvm::Constant *> struct_internal;
-	llvm::StructType::element_iterator ptr_it = type->element_begin();
-	llvm::StructType *element = (llvm::StructType*)*ptr_it;
-	llvm::StructType::element_iterator it = element->element_begin();
-	const unsigned struct_size = element->getNumElements();
-
-	void **data_ptr = (void **)data;
-
-	for (unsigned i = 0; i < struct_size; ++i, it++)
-	{
-		llvm::Type &element_type = **it;
-		element_type.dump();
-		const llvm::Type::TypeID id = element_type.getTypeID();
-		std::cout << "TYPE IS " << id << std::endl;
-		llvm::Constant *new_value;
-
-		switch (id)
-		{
-		case(llvm::Type::IntegerTyID):
-			new_value = create_int_element(element_type, data);
-		default:
-			std::cout << "Type Not found\n";
-		}
-		new_value->dump();
-
-	}
-
-	llvm::Twine name("____hard_data____");
-	llvm::ArrayRef<llvm::Constant *> arrayref(struct_internal);
-	llvm::GlobalVariable *global = new llvm::GlobalVariable(*module, (llvm::Type *)type, true, llvm::GlobalValue::CommonLinkage, *arrayref.data(), name);
-	return "hard_data";*/
-//		return "hard_data";
-//}
-
-
-
-template <typename T>
-static inline T *dereference_type(T *ptr_type)
-{
-	typename T::element_iterator it = ptr_type->element_begin();
-	return static_cast<T *>(*it);
-}
-
-static inline llvm::Value *argumentToValue(llvm::ValueSymbolTable *table, llvm::Argument &arg)
+static inline llvm::Value *argumentToValue(llvm::ValueSymbolTable &table, llvm::Argument &arg)
 {
 	const llvm::StringRef name = arg.getName();
-	return table->lookup(name);
+	return table.lookup(name);
 } 
 
 static inline llvm::Value *createAlignedAlloca(llvm::IRBuilder<> &builder, llvm::Type *type,
@@ -184,27 +126,27 @@ static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llv
 {
 	const llvm::Type *type = arg.getType()->getContainedType(0);
 	const llvm::Type::TypeID id = type->getTypeID();
-std::cout << "It is " << id << "I thought " << llvm::Type::IntegerTyID << "\n";
+
 	switch (id)
 	{
 	case llvm::Type::IntegerTyID:
-		//int *cast_data = (int *)data;
-	std::cout << "It gets here\n";
 		return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 99/**cast_data*/);
 		break;
 	default:
-		std::cout << "AHHHHH\n";
+		std::cout << "WARNING: Type not known in generateConstantValue() for \n";
 		break;
 	}
+
+	return NULL;
 }
 
-inline void DOWorkRepresentation::storeConstantToPtr(llvm::IRBuilder<> &builder, NameGenerator &name, llvm::Argument &arg, void *data)
+static inline void storeConstantToPtr(llvm::IRBuilder<> &builder, llvm::ValueSymbolTable &table, llvm::LLVMContext &context, DOWorkRepresentation::NameGenerator &name, llvm::Argument &arg, void *data)
 {
-	llvm::Value *arg_value = argumentToValue(_table, arg);
+	llvm::Value *arg_value = argumentToValue(table, arg);
 	llvm::Value *X = createAlignedAlloca(builder, arg, 8, name.next());
 	createAlignedStore(builder, arg_value, X, 8);
 	llvm::Value *Xptr = createAlignedLoad(builder, X, 8, name.next());
-	llvm::Value *constant = generateConstantValue(_context, arg, data);
+	llvm::Value *constant = generateConstantValue(context, arg, data);
 	createAlignedStore(builder, constant, Xptr, 8);
 }
 
@@ -213,38 +155,50 @@ static void optimise(llvm::Module *module)
 	llvm::PassManager PM;
 	llvm::PassManagerBuilder Builder;
 	Builder.OptLevel = 1;
-	Builder.DisableUnitAtATime = false;
-	Builder.DisableUnrollLoops = false;
 	Builder.populateModulePassManager(PM);
 	PM.run(*module);
 }
 
-void DOWorkRepresentation::hardcode(void *data)
+typedef llvm::Function::arg_iterator arg_iterator;
+
+static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data)
+{std::cout << "In hardcode\n";
+	DOWorkRepresentation::NameGenerator name("_");
+	llvm::LLVMContext &context = function->getContext();
+	llvm::FunctionType *func_type = function->getFunctionType();
+	llvm::IRBuilder<> builder(function->begin()->begin());
+	llvm::ValueSymbolTable &table = function->getValueSymbolTable();
+
+	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it) 
+		storeConstantToPtr(builder, table, context, name, *it, data);
+	
+	optimise(module);
+   llvm::verifyFunction(*function);
+}
+
+static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Function *function)
 {
-	if (_llvmir_start == NULL)
+	std::string Error;
+	llvm::ExecutionEngine *EE = llvm::ExecutionEngine::createJIT(module, &Error);
+	if (!EE) {
+		std::cout << "\n\n\n\n\n\n\n!!!!!!!!!!\n";
+		llvm::errs() << "unable to make execution engine: " << Error << "\n";
+	}
+
+	void* void_func = EE->getPointerToFunction(function);
+	return reinterpret_cast<DOWorkRepresentation::JITFunc>(void_func);
+}
+
+void DOWorkRepresentation::JITCompile(void *data)
+{
+	if (_llvmir_start == NULL){
+		std::cout << "-- Hardcode scared as no llvm_start";
 		return;
+	}
 
-	
-	_llvm_func->dump();
-
-	NameGenerator name("_h");
-
-	llvm::FunctionType *func_type = _llvm_func->getFunctionType();
-	llvm::ValueSymbolTable &table = _llvm_func->getValueSymbolTable();
-
-	llvm::Argument *arg_it = _llvm_func->arg_begin();
-	
-
-
-//{
-	llvm::IRBuilder<> builder(_llvm_func->begin()->begin()); // Must destruct at end
-	storeConstantToPtr(builder, name, *arg_it, data);
-
-//}
-	
-	optimise(_module);
-   llvm::verifyFunction(*_llvm_func);
-   //_module->dump();
-   _llvm_func->dump();
- 
+	llvm::Module *module = llvm::CloneModule(_module);
+	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
+	llvm::Function *packed_func = module->getFunction(_packed_name);
+	hardcode(module, unpacked_func, data);
+	JITFunc generated_function = doJIT(module, packed_func);
 }

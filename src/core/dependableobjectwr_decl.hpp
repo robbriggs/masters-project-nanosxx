@@ -32,54 +32,58 @@
 #include "llvm/ValueSymbolTable.h"
 #include "llvm/Support/IRBuilder.h"
 
-
 namespace nanos
 {
 
    class DOWorkRepresentation
    {
       public:
-        class NameGenerator
-        {
-        private:
-          const llvm::Twine _base;
-          unsigned _count;
+         class NameGenerator
+         {
+         private:
+            const llvm::Twine _base;
+            unsigned _count;
 
-        public:
-          inline NameGenerator(const char *base) : _base(base), _count(0) { }
+         public:
+            inline NameGenerator(const char *base) : _base(base), _count(0) { }
 
-          inline llvm::Twine next()
-          {
-            llvm::Twine name(_base);
-            name.concat(llvm::Twine(_count++));
-            return name;
-          }
-        };
+            inline llvm::Twine next()
+            {
+               llvm::Twine name(_base);
+               name.concat(llvm::Twine(_count++));
+               return name;
+            }
+         };
+
+         typedef void (*JITFunc)(void *);
 
       private:
          const unsigned char *_llvmir_start;
          const unsigned char *_llvmir_end;
          llvm::LLVMContext _context;
          llvm::Module *_module;
-         std::string _func_name;
-         llvm::Function *_llvm_func;
+         std::string _packed_name;
+         std::string _unpacked_name;
+         //llvm::Function *_llvm_func;
          llvm::ValueSymbolTable *_table;
 
       public:
-        DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[]);
-        DOWorkRepresentation(const DOWorkRepresentation& work_representation);
-        ~DOWorkRepresentation();
+         DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[]);
+         DOWorkRepresentation(const DOWorkRepresentation& work_representation);
+         ~DOWorkRepresentation();
 
-        bool has_ir() const;
-        void JITCompile(void *data);
-        //void checkDependencies(struct *data, std::vector<bool> &required);
-        //void (*)(struct *) checkDependenciesAndJIT(struct *data, std::vector<bool> &required);
-   
+         bool has_ir() const;
+         void JITCompile(void *data);
+         //void checkDependencies(struct *data, std::vector<bool> &required);
+         //void (*)(struct *) checkDependenciesAndJIT(struct *data, std::vector<bool> &required);
+
       private:
-         void hardcode(void *data);
+         //llvm::Module *hardcode(void *data);
          void storeConstantToPtr(llvm::IRBuilder<> &builder, NameGenerator &name, llvm::Argument &arg, void *data);
+         //JITFunc doJIT(llvm::Module *module);
+
    };
 
- }
+}
 #endif
 
