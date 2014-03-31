@@ -122,6 +122,21 @@ static inline llvm::Value *createAlignedLoad(llvm::IRBuilder<> &builder, llvm::V
 	return inst;
 }
 
+static void unsupportedTypeMsg(const char *type)
+{
+	std::cout << "Error: Type " << type << " is not supported\n";
+}
+
+static void unsupportedWidthMsg(const char *type, unsigned width)
+{
+	std::cout << "Error: Type " << type << " with width " << width << " is not supported\n";
+}
+
+#define UNSUPPORTEDTYPE(type) \
+	case llvm::Type::type: \
+		unsupportedTypeMsg(#type); \
+		break;
+
 static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llvm::Argument &arg, void *data)
 {
 	const llvm::Type *type = arg.getType()->getContainedType(0);
@@ -129,18 +144,52 @@ static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llv
 
 	switch (id)
 	{
-	case llvm::Type::IntegerTyID:
-		return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 99/**cast_data*/);
+		case llvm::Type::FloatTyID:
+		{
+			float *cast_data = static_cast<float *>(data);
+			return llvm::ConstantInt::get(llvm::Type::getFloatTy(context), *cast_data);
+		}
 		break;
-	default:
-		std::cout << "WARNING: Type not known in generateConstantValue() for \n";
+		case llvm::Type::DoubleTyID:
+		{
+			double *cast_data = static_cast<double *>(data);
+			return llvm::ConstantInt::get(llvm::Type::getDoubleTy(context), *cast_data);
+		}
 		break;
-	}
+		case llvm::Type::IntegerTyID:
+		{
+			const llvm::IntegerType *int_type = static_cast<const llvm::IntegerType *>(type);
+			const unsigned width = int_type->getBitWidth();
+			int *cast_data = static_cast<int *>(data);
 
+			if (width == 32)
+				return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), *cast_data);
+			else if (width == 64)
+				return llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), *cast_data);
+			else
+				unsupportedWidthMsg("Integer", width);
+		}
+		break;
+		UNSUPPORTEDTYPE(VoidTyID)
+		UNSUPPORTEDTYPE(X86_FP80TyID)
+		UNSUPPORTEDTYPE(FP128TyID)
+		UNSUPPORTEDTYPE(PPC_FP128TyID)
+		UNSUPPORTEDTYPE(LabelTyID)
+		UNSUPPORTEDTYPE(MetadataTyID)
+		UNSUPPORTEDTYPE(X86_MMXTyID)
+		UNSUPPORTEDTYPE(FunctionTyID)
+		UNSUPPORTEDTYPE(StructTyID)
+		UNSUPPORTEDTYPE(ArrayTyID)
+		UNSUPPORTEDTYPE(PointerTyID)
+		UNSUPPORTEDTYPE(VectorTyID)
+		UNSUPPORTEDTYPE(NumTypeIDs)
+	}
 	return NULL;
 }
 
-static inline void storeConstantToPtr(llvm::IRBuilder<> &builder, llvm::ValueSymbolTable &table, llvm::LLVMContext &context, DOWorkRepresentation::NameGenerator &name, llvm::Argument &arg, void *data)
+static inline void storeConstantToPtr(llvm::IRBuilder<> &builder, llvm::ValueSymbolTable &table,
+                                      llvm::LLVMContext &context, DOWorkRepresentation::NameGenerator &name,
+                                      llvm::Argument &arg, void *data)
 {
 	llvm::Value *arg_value = argumentToValue(table, arg);
 	llvm::Value *X = createAlignedAlloca(builder, arg, 8, name.next());
@@ -162,15 +211,17 @@ static void optimise(llvm::Module *module)
 typedef llvm::Function::arg_iterator arg_iterator;
 
 static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data)
-{std::cout << "In hardcode\n";
+{
+	void **data_it = static_cast<void **>(data);
 	DOWorkRepresentation::NameGenerator name("_");
 	llvm::LLVMContext &context = function->getContext();
 	llvm::FunctionType *func_type = function->getFunctionType();
 	llvm::IRBuilder<> builder(function->begin()->begin());
 	llvm::ValueSymbolTable &table = function->getValueSymbolTable();
 
-	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it) 
-		storeConstantToPtr(builder, table, context, name, *it, data);
+	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it, ++data_it)
+		if (data_it != NULL)
+			storeConstantToPtr(builder, table, context, name, *it, data);
 	
 	optimise(module);
    llvm::verifyFunction(*function);
@@ -181,7 +232,6 @@ static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Fu
 	std::string Error;
 	llvm::ExecutionEngine *EE = llvm::ExecutionEngine::createJIT(module, &Error);
 	if (!EE) {
-		std::cout << "\n\n\n\n\n\n\n!!!!!!!!!!\n";
 		llvm::errs() << "unable to make execution engine: " << Error << "\n";
 	}
 
@@ -200,5 +250,17 @@ void DOWorkRepresentation::JITCompile(void *data)
 	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
 	llvm::Function *packed_func = module->getFunction(_packed_name);
 	hardcode(module, unpacked_func, data);
+
+
+
 	JITFunc generated_function = doJIT(module, packed_func);
+
+	int b = 6;
+	struct args {
+		int *b;
+	};
+	args arg = {&b};
+	std::cout << *arg.b << "\n";
+	generated_function( &arg );
+	std::cout << *arg.b << "\n";
 }
