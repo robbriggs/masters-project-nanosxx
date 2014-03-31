@@ -113,8 +113,10 @@ inline int DependableObject::increasePredecessors ( )
 	  return _numPredecessors++;
 }
 
-inline int DependableObject::decreasePredecessors ( )
+inline int DependableObject::decreasePredecessors ( DependableObject *caller )
 {
+   markMetDependencies( getData() );
+
    int  numPred = --_numPredecessors; 
    if ( numPred == 0 ) {
       dependenciesSatisfied( );

@@ -175,7 +175,11 @@ namespace nanos
          *         if it becomes 0, the dependencies are satisfied and the virtual
          *         method dependenciesSatisfied is invoked.
          */
-         int decreasePredecessors ( );
+         int decreasePredecessors ( DependableObject *caller = NULL );
+
+         virtual void markMetDependencies( void *data ) = 0;
+
+         virtual void *getData() = 0;
 
          /*! \brief  Returns the number of predecessors of this DependableObject
           */

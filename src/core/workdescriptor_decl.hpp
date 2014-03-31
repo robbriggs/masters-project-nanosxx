@@ -227,6 +227,7 @@ namespace nanos
 
          DOWorkRepresentation          _workRepresentation;
 
+
       private: /* private methods */
          /*! \brief WorkDescriptor copy assignment operator (private)
           */
@@ -621,6 +622,10 @@ namespace nanos
          char * getDescription ( void ) const;
 
          void JITCompile();
+
+         void *getData();
+
+         void markMetDependencies( void *data );
    };
 
    typedef class WorkDescriptor WD;

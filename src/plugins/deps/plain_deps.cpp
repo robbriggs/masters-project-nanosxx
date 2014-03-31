@@ -117,7 +117,8 @@ namespace nanos {
                depObj.submitted();
             
                // now everything is ready
-               depObj.decreasePredecessors();
+               printf("Calling from plain\n");
+               depObj.decreasePredecessors( &depObj );
                //Flush the object
                depObj.wait( flushDeps );
             }

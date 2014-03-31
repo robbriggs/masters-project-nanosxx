@@ -79,6 +79,10 @@ namespace nanos
          /*! \brief Instrument predecessor -> successor dependency
           */
          virtual void instrument ( DependableObject& successor );
+
+         void markMetDependencies( void *data );
+
+         void *getData();
    };
 
   /*! \brief DependableObject representing a WorkDescriptor as a task domain to wait on some dependencies
@@ -145,6 +149,10 @@ namespace nanos
          /*! \brief Instrument predecessor -> successor dependency
           */
          virtual void instrument ( DependableObject& successor );
+
+         void markMetDependencies( void *data );
+
+         void *getData() {return NULL;}
    };
 };
 

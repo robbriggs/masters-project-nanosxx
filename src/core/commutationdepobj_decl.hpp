@@ -71,7 +71,11 @@ namespace nanos
  
          /*! \brief Returns true if this is for commutative accesses rather than concurrent ones. 
           */ 
-         bool isCommutative() const; 
+         bool isCommutative() const;
+
+         void markMetDependencies( void *data ) {}
+
+         void *getData() {return NULL;}
    };
 };
 

@@ -71,5 +71,10 @@ inline const void * DOWait::getRelatedObject ( ) const
    return (void *) _waitDomainWD;
 }
 
+inline void DOWait::markMetDependencies( void *data )
+{
+   _waitDomainWD->markMetDependencies( data );
+}
+
 #endif
 

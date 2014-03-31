@@ -356,5 +356,10 @@ inline void WorkDescriptor::JITCompile()
       _workRepresentation.JITCompile(_data);
 }
 
+inline void *WorkDescriptor::getData()
+{
+  return _data;
+}
+
 #endif
 
