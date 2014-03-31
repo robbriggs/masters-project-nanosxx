@@ -239,28 +239,17 @@ static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Fu
 	return reinterpret_cast<DOWorkRepresentation::JITFunc>(void_func);
 }
 
-void DOWorkRepresentation::JITCompile(void *data)
+DOWorkRepresentation::JITFunc DOWorkRepresentation::JITCompile(void *data)
 {
 	if (_llvmir_start == NULL){
 		std::cout << "-- Hardcode scared as no llvm_start";
-		return;
+		return NULL;
 	}
 
 	llvm::Module *module = llvm::CloneModule(_module);
 	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
 	llvm::Function *packed_func = module->getFunction(_packed_name);
 	hardcode(module, unpacked_func, data);
-
-
-
 	JITFunc generated_function = doJIT(module, packed_func);
-
-	int b = 6;
-	struct args {
-		int *b;
-	};
-	args arg = {&b};
-	std::cout << *arg.b << "\n";
-	generated_function( &arg );
-	std::cout << *arg.b << "\n";
+	return generated_function;
 }

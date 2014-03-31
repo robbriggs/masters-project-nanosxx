@@ -24,6 +24,7 @@
 #include "smpdevice.hpp"
 #include "workdescriptor.hpp"
 #include "config.hpp"
+#include <iostream>
 
 namespace nanos {
 namespace ext
@@ -58,7 +59,7 @@ namespace ext
 
          virtual ~SMPDD() { if ( _stack ) delete[] _stack; }
 
-         work_fct getWorkFct() const { return _work; }
+         work_fct getWorkFct() const { std::cout << "Fct is being taken from SMPDD\n" ; return _work; }
 
          bool hasStack() { return _state != NULL; }
 
@@ -81,6 +82,8 @@ namespace ext
          virtual SMPDD *copyTo ( void *toAddr );
 
          virtual SMPDD *clone () const { return NEW SMPDD ( *this); }
+
+         void setWorkFct(work_fct work) {std::cout << "Fct is being set\n" ; _work = work;}
       };
 
    inline const SMPDD & SMPDD::operator= ( const SMPDD &dd )

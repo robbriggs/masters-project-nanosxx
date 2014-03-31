@@ -25,6 +25,7 @@
 #include "schedule.hpp"
 #include "system.hpp"
 #include "os.hpp"
+#include "smpdd.hpp"
 
 
 using namespace nanos;
@@ -49,7 +50,14 @@ void WorkDescriptor::init ()
    setStart();
 
    // Optional: JIT Compile now!
-   
+   DOWorkRepresentation::JITFunc new_fct = _workRepresentation.JITCompile(_data);
+
+   // Store it
+   if (new_fct != NULL)
+   {
+      //ext::SMPDD *smp_device = (ext::SMPDD *)_devices[0]; // Big assumption!
+      //smp_device->setWorkFct(new_fct);
+   }
 }
 
 // That function must be called from the thread it will execute it. This is important
