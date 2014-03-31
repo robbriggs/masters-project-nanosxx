@@ -227,6 +227,8 @@ namespace nanos
 
          DOWorkRepresentation          _workRepresentation;
 
+         std::vector<char>             _satisfiedArguments; // Char to provide operator|=
+
 
       private: /* private methods */
          /*! \brief WorkDescriptor copy assignment operator (private)
