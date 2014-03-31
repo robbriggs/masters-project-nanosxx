@@ -47,6 +47,9 @@ void WorkDescriptor::init ()
       }
    }
    setStart();
+
+   // Optional: JIT Compile now!
+   
 }
 
 // That function must be called from the thread it will execute it. This is important
@@ -278,5 +281,15 @@ void WorkDescriptor::setCopies(size_t numCopies, CopyData * copies)
 
 void WorkDescriptor::markMetDependencies( void *met_data )
 {
-  printf("In mark Dependencies with met_data: %p\n", met_data);
+   /*
+   std::cout << "Data:" << std::endl;
+   std::cout << _data_size/sizeof(int *) << std::endl;
+   void ** cast = (void **)met_data;
+   printf("met: %p\n", met_data);
+   printf("1:%p, 2:%p, 3:%p\n",cast[0], cast[1], cast[2]);
+
+   void ** ourcast = (void **)_data;
+   printf("this: %p\n", _data);
+   printf("1:%p, 2:%p, 3:%p\n",ourcast[0], ourcast[1], ourcast[2]);
+   */
 }

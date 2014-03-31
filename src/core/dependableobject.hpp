@@ -115,7 +115,12 @@ inline int DependableObject::increasePredecessors ( )
 
 inline int DependableObject::decreasePredecessors ( DependableObject *caller )
 {
-   markMetDependencies( getData() );
+   std::cout << "In decreasePredecessors\n";
+   if (caller != NULL)
+   {
+      printf("Me: %p, Me data: %p, Caller: %p, Caller data: %p\n", this, this->getData(), caller, caller->getData());
+      markMetDependencies( caller->getData() );
+   }
 
    int  numPred = --_numPredecessors; 
    if ( numPred == 0 ) {

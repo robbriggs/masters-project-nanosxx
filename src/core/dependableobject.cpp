@@ -25,6 +25,7 @@ using namespace nanos;
 
 void DependableObject::finished ( )
 {
+   std::cout << "In DependableObject::finish" << std::endl;
    if ( --_references == 0) {
       DependableObject& depObj = *this;
 
@@ -54,14 +55,17 @@ void DependableObject::finished ( )
       }
 
       DependableObject::DependableObjectDependencyDescVector &succ = depObj.getSuccessors();
+      std::cout << succ.size() << std::endl;
       for ( DependableObject::DependableObjectDependencyDescVector::iterator it = succ.begin(); it != succ.end(); it++ ) {
 
          NANOS_INSTRUMENT ( instrument ( *((*it).object()) ); ) 
 
          const DependableObjectDependencyDesc &desc = *it;
          if (desc.active())
-            desc.object()->decreasePredecessors();
+            desc.object()->decreasePredecessors( );
+
       }
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
    }
 }
 
