@@ -289,7 +289,6 @@ void WorkDescriptor::setCopies(size_t numCopies, CopyData * copies)
 
 void WorkDescriptor::markMetDependencies( void *met_data )
 {
-   /*
    std::cout << "Data:" << std::endl;
    std::cout << _data_size/sizeof(int *) << std::endl;
    void ** cast = (void **)met_data;
@@ -299,5 +298,4 @@ void WorkDescriptor::markMetDependencies( void *met_data )
    void ** ourcast = (void **)_data;
    printf("this: %p\n", _data);
    printf("1:%p, 2:%p, 3:%p\n",ourcast[0], ourcast[1], ourcast[2]);
-   */
 }

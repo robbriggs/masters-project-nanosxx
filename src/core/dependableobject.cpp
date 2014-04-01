@@ -62,7 +62,7 @@ void DependableObject::finished ( )
 
          const DependableObjectDependencyDesc &desc = *it;
          if (desc.active())
-            desc.object()->decreasePredecessors( );
+            desc.object()->decreasePredecessors( this );
 
       }
       std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";

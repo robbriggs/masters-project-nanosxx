@@ -62,11 +62,6 @@ void DOSubmit::instrument ( DependableObject &successor )
    NANOS_INSTRUMENT ( instr->createDeferredPtPEnd ( *wd_receiver, NANOS_WD_DEPENDENCY, id, 0, 0 ); )
 }
 
-void DOSubmit::markMetDependencies( void *data )
-{
-   _submittedWD->markMetDependencies( data );
-}
-
 void *DOSubmit::getData()
 {
    return _submittedWD->getData();

@@ -48,6 +48,11 @@ inline const void * DOSubmit::getRelatedObject ( ) const
    return (void *) _submittedWD;
 }
 
+inline void DOSubmit::markMetDependencies( void *data )
+{
+   _submittedWD->markMetDependencies( data );
+}
+
 inline const DOWait & DOWait::operator= ( const DOWait &dow )
 {
    if ( this == &dow ) return *this; 
