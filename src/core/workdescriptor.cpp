@@ -289,14 +289,31 @@ void WorkDescriptor::setCopies(size_t numCopies, CopyData * copies)
 
 void WorkDescriptor::markMetDependencies( DependableObject *caller )
 {
-   void *met_data = caller->getData();
-   std::cout << "Data:" << std::endl;
-   std::cout << _data_size/sizeof(int *) << std::endl;
-   void ** cast = (void **)met_data;
-   printf("met: %p\n", met_data);
-   printf("1:%p, 2:%p, 3:%p\n",cast[0], cast[1], cast[2]);
+   WorkDescriptor *caller_wd = static_cast<WorkDescriptor *>(caller->getRelatedObject());
 
-   void ** ourcast = (void **)_data;
-   printf("this: %p\n", _data);
-   printf("1:%p, 2:%p, 3:%p\n",ourcast[0], ourcast[1], ourcast[2]);
+   if (caller_wd)
+   {
+      const size_t my_data_size = getDataSize ();
+      const unsigned my_data_len = my_data_size / sizeof(int *);
+      void **my_data = (void **)_data;
+
+      const unsigned caller_data_size = caller_wd->getDataSize();
+      const unsigned caller_data_len = caller_data_size / sizeof(int *);
+      void **caller_data = (void **)caller_wd->getData();
+
+      for (unsigned i = 0; i < my_data_len; ++i) // My Loop
+      {
+         if (_satisfiedArguments[i])
+            continue;
+
+         for (unsigned j = 0; j < caller_data_len; ++j) // Caller loop
+         {
+            if (my_data[i] == caller_data[j])
+            {
+               _satisfiedArguments[i] = 1;
+               break; // Exits the caller loop
+            }
+         }
+      }
+   }
 }
