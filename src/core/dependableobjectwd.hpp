@@ -48,9 +48,9 @@ inline const void * DOSubmit::getRelatedObject ( ) const
    return (void *) _submittedWD;
 }
 
-inline void DOSubmit::markMetDependencies( void *data )
+inline void DOSubmit::markMetDependencies( DependableObject *caller )
 {
-   _submittedWD->markMetDependencies( data );
+   _submittedWD->markMetDependencies( caller );
 }
 
 inline const DOWait & DOWait::operator= ( const DOWait &dow )
@@ -76,9 +76,9 @@ inline const void * DOWait::getRelatedObject ( ) const
    return (void *) _waitDomainWD;
 }
 
-inline void DOWait::markMetDependencies( void *data )
+inline void DOWait::markMetDependencies( DependableObject *caller )
 {
-   _waitDomainWD->markMetDependencies( data );
+   _waitDomainWD->markMetDependencies( caller );
 }
 
 #endif

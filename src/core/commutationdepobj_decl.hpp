@@ -73,7 +73,7 @@ namespace nanos
           */ 
          bool isCommutative() const;
 
-         void markMetDependencies( void *data ) {}
+         void markMetDependencies( DependableObject *caller ) {}
 
          void *getData() {return NULL;}
    };

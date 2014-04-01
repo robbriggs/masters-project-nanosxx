@@ -287,8 +287,9 @@ void WorkDescriptor::setCopies(size_t numCopies, CopyData * copies)
     }
 }
 
-void WorkDescriptor::markMetDependencies( void *met_data )
+void WorkDescriptor::markMetDependencies( DependableObject *caller )
 {
+   void *met_data = caller->getData();
    std::cout << "Data:" << std::endl;
    std::cout << _data_size/sizeof(int *) << std::endl;
    void ** cast = (void **)met_data;

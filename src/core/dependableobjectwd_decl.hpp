@@ -80,7 +80,7 @@ namespace nanos
           */
          virtual void instrument ( DependableObject& successor );
 
-         void markMetDependencies( void *data );
+         void markMetDependencies( DependableObject *caller );
 
          void *getData();
    };
@@ -150,7 +150,7 @@ namespace nanos
           */
          virtual void instrument ( DependableObject& successor );
 
-         void markMetDependencies( void *data );
+         void markMetDependencies( DependableObject *caller );
 
          void *getData() {return NULL;}
    };

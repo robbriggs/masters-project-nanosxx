@@ -627,7 +627,7 @@ namespace nanos
 
          void *getData();
 
-         void markMetDependencies( void *data );
+         void markMetDependencies( DependableObject *caller );
    };
 
    typedef class WorkDescriptor WD;

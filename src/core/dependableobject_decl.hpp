@@ -177,7 +177,7 @@ namespace nanos
          */
          int decreasePredecessors ( DependableObject *caller = NULL );
 
-         virtual void markMetDependencies( void *data ) = 0;
+         virtual void markMetDependencies( DependableObject *caller ) = 0;
 
          virtual void *getData() = 0;
 
