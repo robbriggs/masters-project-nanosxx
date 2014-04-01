@@ -73,7 +73,7 @@ namespace nanos
          ~DOWorkRepresentation();
 
          bool has_ir() const;
-         JITFunc JITCompile(void *data);
+         JITFunc JITCompile(void *data, std::vector<char> *satisfiedArguments = NULL);
          //void checkDependencies(struct *data, std::vector<bool> &required);
          //void (*)(struct *) checkDependenciesAndJIT(struct *data, std::vector<bool> &required);
 

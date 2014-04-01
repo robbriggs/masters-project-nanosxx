@@ -27,6 +27,11 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
+#include <iostream>
+#include <sstream>
+
+#include <stdio.h>
+
 using namespace nanos;
 
 static inline void InitializeLLVM()
@@ -55,18 +60,17 @@ DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], c
 
 	// Parse IR text
 	std::string ir(llvmir_start, llvmir_end);
+
 	llvm::SMDiagnostic err;
 	llvm::MemoryBuffer *buf = llvm::MemoryBuffer::getMemBuffer(ir);
-
 	_module = ParseIR(buf, err, _context);
 
 	 _packed_name = std::string((const char*)llvm_function);
 	std::stringstream ss;
 	ss << _packed_name << "_unpacked";
 	_unpacked_name = ss.str();
-	std::cout << "End of construct\n";
-	
-	//std::cout << "*****\n******\n*******\nLooking for " << _func_name << std::endl;
+	std::cout << _unpacked_name << std::endl;
+	llvm::verifyModule(*_module);
 }
 
 DOWorkRepresentation::DOWorkRepresentation(const DOWorkRepresentation &work_representation)
@@ -210,21 +214,84 @@ static void optimise(llvm::Module *module)
 
 typedef llvm::Function::arg_iterator arg_iterator;
 
-static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data)
+static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data, std::vector<char> *satisfiedArguments)
 {
 	void **data_it = static_cast<void **>(data);
 	DOWorkRepresentation::NameGenerator name("_");
 	llvm::LLVMContext &context = function->getContext();
-	llvm::FunctionType *func_type = function->getFunctionType();
 	llvm::IRBuilder<> builder(function->begin()->begin());
 	llvm::ValueSymbolTable &table = function->getValueSymbolTable();
 
-	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it, ++data_it)
-		if (data_it != NULL)
-			storeConstantToPtr(builder, table, context, name, *it, data);
-	
+	printf("data: %p\n", (void *)&data);
+
+	int i;
+	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it, ++data_it, ++i){
+
+		if (satisfiedArguments == NULL || static_cast<bool>(satisfiedArguments->at(i)))
+			storeConstantToPtr(builder, table, context, name, *it, *data_it);
+	}
 	optimise(module);
-   llvm::verifyFunction(*function);
+
+	llvm::verifyFunction(*function);
+}
+
+static inline bool canRunNow(llvm::Function *function, std::vector<char> &satisfiedArguments)
+{
+	llvm::ValueSymbolTable &table = function->getValueSymbolTable();
+	arg_iterator args = function->arg_begin();
+
+	int arg_num = 0;
+	int satisfied_count = 0;
+	for (std::vector<char>::iterator it = satisfiedArguments.begin(), E = satisfiedArguments.end(); it != E; ++it, ++arg_num)
+	{
+		if (*it == 0)
+		{
+			llvm::Value *arg_value = argumentToValue(table, *args);
+			if (arg_value->use_empty())
+			{
+				// Not used, so can prune
+				satisfiedArguments[arg_num] = 1;
+				++satisfied_count;
+			}
+		} else {
+			++satisfied_count;
+		}
+		args++;
+	}
+
+	bool result = (satisfied_count == arg_num );
+	return result;
+/*
+	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it)
+	{
+		bool read = false;
+		bool write = false;
+
+		llvm::Value *arg_value = argumentToValue(table, *it);
+		for (llvm::Value::use_iterator use_it = arg_value->use_begin(), E = arg_value->use_end(); use_it != E; ++use_it)
+		{
+			const llvm::User * const user = *use_it;
+			const llvm::StoreInst * const store_use = dynamic_cast<const llvm::StoreInst * const>(user);
+			if (store_use)
+			{
+				write = true;
+				continue;
+			}
+			const llvm::LoadInst * const load_use = dynamic_cast<const llvm::LoadInst * const>(user);
+			if (load_use)
+			{
+				read = true;
+				continue;
+			}
+
+			// Neither Load nor Store
+			std::cout << "Error: neither load or store\n";
+		}
+
+		std::pair<bool,bool> n(read,write);
+		output.push_back(n);
+	}
+*/
 }
 
 static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Function *function)
@@ -239,17 +306,19 @@ static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Fu
 	return reinterpret_cast<DOWorkRepresentation::JITFunc>(void_func);
 }
 
-DOWorkRepresentation::JITFunc DOWorkRepresentation::JITCompile(void *data)
+DOWorkRepresentation::JITFunc DOWorkRepresentation::JITCompile(void *data, std::vector<char> *satisfiedArguments)
 {
-	if (_llvmir_start == NULL){
-		std::cout << "-- Hardcode scared as no llvm_start";
+	if (_llvmir_start == NULL)
 		return NULL;
-	}
 
 	llvm::Module *module = llvm::CloneModule(_module);
 	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
 	llvm::Function *packed_func = module->getFunction(_packed_name);
-	hardcode(module, unpacked_func, data);
+	hardcode(module, unpacked_func, data, satisfiedArguments);
+
+	if (satisfiedArguments && canRunNow(unpacked_func, *satisfiedArguments))
+		std::cout << "Can run task early" << std::endl;
+
 	JITFunc generated_function = doJIT(module, packed_func);
 	return generated_function;
 }

@@ -55,8 +55,8 @@ void WorkDescriptor::init ()
    // Store it
    if (new_fct != NULL)
    {
-      //ext::SMPDD *smp_device = (ext::SMPDD *)_devices[0]; // Big assumption!
-      //smp_device->setWorkFct(new_fct);
+      ext::SMPDD *smp_device = (ext::SMPDD *)_devices[0]; // Big assumption!
+      smp_device->setWorkFct(new_fct);
    }
 }
 
@@ -316,4 +316,6 @@ void WorkDescriptor::markMetDependencies( DependableObject *caller )
          }
       }
    }
+
+   JITCompile();
 }

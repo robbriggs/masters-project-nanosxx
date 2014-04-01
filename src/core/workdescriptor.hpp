@@ -351,9 +351,8 @@ inline char * WorkDescriptor::getDescription ( void ) const  { return _descripti
 
 inline void WorkDescriptor::JITCompile()
 {
-   std::cout << "IN JISTOCMPIAWEF\n";
    if (_workRepresentation.has_ir())
-      _workRepresentation.JITCompile(_data);
+      _workRepresentation.JITCompile(_data, &_satisfiedArguments);
 }
 
 inline void *WorkDescriptor::getData()
