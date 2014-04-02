@@ -48,7 +48,7 @@ namespace ext
          // constructors
          SMPDD( work_fct w ) : DD( &SMP ),_work( w ),_stack( 0 ),_state( 0 ) {}
 
-         SMPDD() : DD( &SMP ),_work( 0 ),_stack( 0 ),_state( 0 ) {std::cout << "In SMPDD const2\n";}
+         SMPDD() : DD( &SMP ),_work( 0 ),_stack( 0 ),_state( 0 ) {}
 
          // copy constructors
          SMPDD( const SMPDD &dd ) : DD( dd ), _work( dd._work ), _stack( 0 ), _state( 0 ) {}
@@ -59,7 +59,7 @@ namespace ext
 
          virtual ~SMPDD() { if ( _stack ) delete[] _stack; }
 
-         work_fct getWorkFct() const { std::cout << "Fct is being taken from SMPDD\n" ; return _work; }
+         work_fct getWorkFct() const { return _work; }
 
          bool hasStack() { return _state != NULL; }
 
@@ -83,7 +83,7 @@ namespace ext
 
          virtual SMPDD *clone () const { return NEW SMPDD ( *this); }
 
-         void setWorkFct(work_fct work) {std::cout << "Fct is being set\n" ; _work = work;}
+         void setWorkFct(work_fct work) { _work = work; }
       };
 
    inline const SMPDD & SMPDD::operator= ( const SMPDD &dd )

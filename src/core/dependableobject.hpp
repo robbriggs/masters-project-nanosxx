@@ -115,7 +115,6 @@ inline int DependableObject::increasePredecessors ( )
 
 inline int DependableObject::decreasePredecessors ( DependableObject *caller )
 {
-   std::cout << "In decreasePredecessors\n";
    if (caller != NULL)
       markMetDependencies( caller );
 

@@ -154,7 +154,6 @@ bool WorkDescriptor::canRunIn ( const ProcessingElement &pe ) const
 
 void WorkDescriptor::submit( void )
 {
-   std::cout << "WD is being submitted to schedular\n";
    JITCompile();
    Scheduler::submit(*this);
 } 

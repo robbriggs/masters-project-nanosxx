@@ -75,14 +75,10 @@ namespace nanos
 
          bool has_ir() const;
          JITFunc JITCompile(void *data, std::vector<char> *satisfiedArguments = NULL);
-         //void checkDependencies(struct *data, std::vector<bool> &required);
-         //void (*)(struct *) checkDependenciesAndJIT(struct *data, std::vector<bool> &required);
 
       private:
-         //llvm::Module *hardcode(void *data);
          void storeConstantToPtr(llvm::IRBuilder<> &builder, NameGenerator &name, llvm::Argument &arg, void *data);
          void detectPointerArguments();
-         //JITFunc doJIT(llvm::Module *module);
 
    };
 

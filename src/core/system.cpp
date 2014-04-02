@@ -415,7 +415,6 @@ PE * System::createPE ( std::string pe_type, int pid, int uid )
 
 void System::start ()
 {
-  std::cout << "System start\n";
    if ( !_useCaches ) _cachePolicy = System::NONE;
    
    //! Load hwloc first, in order to make it available for modules
@@ -740,8 +739,6 @@ void System::createWD ( WD **uwd, size_t num_devices, nanos_device_t *devices, s
                         const char *description, const unsigned char llvmir_start[], const unsigned char llvmir_end[],
                         const unsigned char llvm_function[])
 {
-  std::cout << "creatingWD\n";
-  //std::cout << "LLVMIR = "<<llvmir_start<<std::endl;
    ensure(num_devices > 0,"WorkDescriptor has no devices");
 
    unsigned int i;

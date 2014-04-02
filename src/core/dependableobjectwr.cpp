@@ -46,12 +46,8 @@ static inline void InitializeLLVM()
 DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[])
 	: _llvmir_start(llvmir_start), _llvmir_end(llvmir_end)
 {
-	if (llvmir_start == NULL){
-		std::cout << "++ Starting DOWR with NO LLVM\n";
+	if (llvmir_start == NULL)
 		return;
-	} else {
-		std::cout << "++ Starting DOWR with LLVM\n";
-	}
 
 	if (llvmir_start == llvmir_end)
 		std::cout << "WARNING: llvmir_start == llvmir_end\n";
@@ -69,7 +65,7 @@ DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], c
 	std::stringstream ss;
 	ss << _packed_name << "_unpacked";
 	_unpacked_name = ss.str();
-	std::cout << _unpacked_name << std::endl;
+
 	llvm::verifyModule(*_module);
 	detectPointerArguments();
 }
@@ -179,7 +175,7 @@ static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llv
 			const unsigned width = int_type->getBitWidth();
 
 			double value = (ptr) ? (**(int **)data) : (*(int *)data);
-			
+
 			if (width == 32){
 				return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), value);}
 			else if (width == 64){
@@ -209,19 +205,12 @@ static inline void storeConstantToPtr(llvm::IRBuilder<> &builder, llvm::ValueSym
                                       llvm::LLVMContext &context, DOWorkRepresentation::NameGenerator &name,
                                       llvm::Argument &arg, void *data, bool ptr)
 {
-	std::cout << "Storing a const ptr\n";
 	llvm::Value *arg_value = argumentToValue(table, arg);
-	std::cout << "Storing a const ptr\n";
 	llvm::Value *X = createAlignedAlloca(builder, arg, 8, name.next());
-	std::cout << "Storing a const ptr\n";
 	createAlignedStore(builder, arg_value, X, 8);
-	std::cout << "Storing a const ptr\n";
 	llvm::Value *Xptr = createAlignedLoad(builder, X, 8, name.next());
-	std::cout << "Storing a const ptr\n";
 	llvm::Value *constant = generateConstantValue(context, arg, data, ptr);
-	std::cout << "Storing a const ptr\n";
 	createAlignedStore(builder, constant, Xptr, 8);
-	std::cout << "Storing a const ptr\n";
 }
 
 static void optimise(llvm::Module *module)
@@ -243,18 +232,14 @@ static inline void hardcode(llvm::Module *module, llvm::Function *function, void
 	llvm::IRBuilder<> builder(function->begin()->begin());
 	llvm::ValueSymbolTable &table = function->getValueSymbolTable();
 
-	printf("data: %p\n", (void *)&data);
-
 	int i;
 	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it, ++data_it, ++i){
-		std::cout << "In hardcode loop " << i << std::endl;
 
 		if (satisfiedArguments == NULL || static_cast<bool>(satisfiedArguments->at(i)))
 			storeConstantToPtr(builder, table, context, name, *it, data_it, _isPointerArgument.at(i));
 	}
-	printf("About to optimize\n");
-	optimise(module);
 
+	optimise(module);
 	llvm::verifyFunction(*function);
 }
 
@@ -266,7 +251,7 @@ static inline bool canRunNow(llvm::Function *function, std::vector<char> &satisf
 	int arg_num = 0;
 	int satisfied_count = 0;
 	for (std::vector<char>::iterator it = satisfiedArguments.begin(), E = satisfiedArguments.end(); it != E; ++it, ++arg_num)
-	{std::cout << "Loop\n";
+	{
 		if (*it == 0)
 		{
 			llvm::Value *arg_value = argumentToValue(table, *args);
@@ -283,39 +268,7 @@ static inline bool canRunNow(llvm::Function *function, std::vector<char> &satisf
 	}
 
 	bool result = (satisfied_count == arg_num );
-	std::cout << "done\n";
 	return result;
-/*
-	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it)
-	{
-		bool read = false;
-		bool write = false;
-
-		llvm::Value *arg_value = argumentToValue(table, *it);
-		for (llvm::Value::use_iterator use_it = arg_value->use_begin(), E = arg_value->use_end(); use_it != E; ++use_it)
-		{
-			const llvm::User * const user = *use_it;
-			const llvm::StoreInst * const store_use = dynamic_cast<const llvm::StoreInst * const>(user);
-			if (store_use)
-			{
-				write = true;
-				continue;
-			}
-			const llvm::LoadInst * const load_use = dynamic_cast<const llvm::LoadInst * const>(user);
-			if (load_use)
-			{
-				read = true;
-				continue;
-			}
-
-			// Neither Load nor Store
-			std::cout << "Error: neither load or store\n";
-		}
-
-		std::pair<bool,bool> n(read,write);
-		output.push_back(n);
-	}
-*/
 }
 
 static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Function *function)
@@ -332,22 +285,13 @@ static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Fu
 
 DOWorkRepresentation::JITFunc DOWorkRepresentation::JITCompile(void *data, std::vector<char> *satisfiedArguments)
 {
-	std::cout << "Start of JITCompile" << std::endl;
 	if (_llvmir_start == NULL)
 		return NULL;
 
 	llvm::Module *module = llvm::CloneModule(_module);
 	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
 	llvm::Function *packed_func = module->getFunction(_packed_name);
-	std::cout << "About to hardcode\n";
 	hardcode(module, unpacked_func, data, satisfiedArguments, _isPointerArgument);
-	std::cout << "Completed hardcoding\n";
-
-	if (satisfiedArguments && canRunNow(unpacked_func, *satisfiedArguments))
-		std::cout << "Can run task early" << std::endl;
-
 	JITFunc generated_function = doJIT(module, packed_func);
-
-	std::cout << "End of JITCompile" << std::endl;
 	return generated_function;
 }
