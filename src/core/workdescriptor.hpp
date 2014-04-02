@@ -54,7 +54,7 @@ inline WorkDescriptor::WorkDescriptor ( int ndevices, DeviceData **devs, size_t 
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ), _commutativeOwnerMap(NULL), _commutativeOwners(NULL), _wakeUpQueue( UINT_MAX ),
                                  _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
-                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function ), _satisfiedArguments(_data_size, false)
+                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function ), _satisfiedArguments(_data_size/sizeof(int *), false)
                                  {
                                     _flags.is_final = 0;
                                  }
@@ -72,7 +72,7 @@ inline WorkDescriptor::WorkDescriptor ( DeviceData *device, size_t data_size, si
                                  _directory(NULL), _submitted( false ), _implicit(false), _translateArgs( translate_args ),
                                  _priority( 0 ),  _commutativeOwnerMap(NULL), _commutativeOwners(NULL),
                                  _wakeUpQueue( UINT_MAX ), _copiesNotInChunk(false), _description(description), _instrumentationContextData(),
-                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function ), _satisfiedArguments(_data_size, false)
+                                 _workRepresentation( llvmir_start, llvmir_end, llvm_function ), _satisfiedArguments(_data_size/sizeof(int *), false)
                                  {
                                      _devices = new DeviceData*[1];
                                      _devices[0] = device;

@@ -66,6 +66,7 @@ namespace nanos
          std::string _unpacked_name;
          //llvm::Function *_llvm_func;
          llvm::ValueSymbolTable *_table;
+         std::vector<bool> _isPointerArgument;
 
       public:
          DOWorkRepresentation(const unsigned char llvmir_start[], const unsigned char llvmir_end[], const unsigned char llvm_function[]);
@@ -80,6 +81,7 @@ namespace nanos
       private:
          //llvm::Module *hardcode(void *data);
          void storeConstantToPtr(llvm::IRBuilder<> &builder, NameGenerator &name, llvm::Argument &arg, void *data);
+         void detectPointerArguments();
          //JITFunc doJIT(llvm::Module *module);
 
    };

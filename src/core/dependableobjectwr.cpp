@@ -71,6 +71,26 @@ DOWorkRepresentation::DOWorkRepresentation(const unsigned char llvmir_start[], c
 	_unpacked_name = ss.str();
 	std::cout << _unpacked_name << std::endl;
 	llvm::verifyModule(*_module);
+	detectPointerArguments();
+}
+
+template <typename T>
+static inline T *dereference_type(T *ptr_type)
+{
+	typename T::element_iterator it = ptr_type->element_begin();
+	return static_cast<T *>(*it);
+}
+
+void DOWorkRepresentation::detectPointerArguments()
+{
+	llvm::Function *packed_func = _module->getFunction(_packed_name);
+	const llvm::Argument &arg = *(packed_func->arg_begin());
+	const llvm::Type *arg_type = arg.getType();
+	const llvm::Type *struct_type = arg_type->getContainedType(0);
+	const llvm::StructType *struct_t = llvm::cast<llvm::StructType>(struct_type);
+
+	for (llvm::StructType::element_iterator it = struct_t->element_begin(), E = struct_t->element_end(); it != E; ++it)
+		_isPointerArgument.push_back((*it)->isPointerTy());
 }
 
 DOWorkRepresentation::DOWorkRepresentation(const DOWorkRepresentation &work_representation)
@@ -81,13 +101,6 @@ DOWorkRepresentation::DOWorkRepresentation(const DOWorkRepresentation &work_repr
 DOWorkRepresentation::~DOWorkRepresentation()
 {
 
-}
-
-template <typename T>
-static inline T *dereference_type(T *ptr_type)
-{
-	typename T::element_iterator it = ptr_type->element_begin();
-	return static_cast<T *>(*it);
 }
 
 static inline llvm::Value *argumentToValue(llvm::ValueSymbolTable &table, llvm::Argument &arg)
@@ -141,7 +154,7 @@ static void unsupportedWidthMsg(const char *type, unsigned width)
 		unsupportedTypeMsg(#type); \
 		break;
 
-static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llvm::Argument &arg, void *data)
+static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llvm::Argument &arg, void *data, bool ptr)
 {
 	const llvm::Type *type = arg.getType()->getContainedType(0);
 	const llvm::Type::TypeID id = type->getTypeID();
@@ -150,26 +163,27 @@ static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llv
 	{
 		case llvm::Type::FloatTyID:
 		{
-			float *cast_data = static_cast<float *>(data);
-			return llvm::ConstantInt::get(llvm::Type::getFloatTy(context), *cast_data);
+			float value = (ptr) ? (**(float **)data) : (*(float *)data);
+			return llvm::ConstantInt::get(llvm::Type::getFloatTy(context), value);
 		}
 		break;
 		case llvm::Type::DoubleTyID:
 		{
-			double *cast_data = static_cast<double *>(data);
-			return llvm::ConstantInt::get(llvm::Type::getDoubleTy(context), *cast_data);
+			double value = (ptr) ? (**(double **)data) : (*(double *)data);
+			return llvm::ConstantInt::get(llvm::Type::getDoubleTy(context), value);
 		}
 		break;
 		case llvm::Type::IntegerTyID:
 		{
-			const llvm::IntegerType *int_type = static_cast<const llvm::IntegerType *>(type);
+			const llvm::IntegerType *int_type = llvm::cast<llvm::IntegerType>(type);
 			const unsigned width = int_type->getBitWidth();
-			int *cast_data = static_cast<int *>(data);
 
-			if (width == 32)
-				return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), *cast_data);
-			else if (width == 64)
-				return llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), *cast_data);
+			double value = (ptr) ? (**(int **)data) : (*(int *)data);
+			
+			if (width == 32){
+				return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), value);}
+			else if (width == 64){
+				return llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), value);}
 			else
 				unsupportedWidthMsg("Integer", width);
 		}
@@ -193,14 +207,21 @@ static inline llvm::Value *generateConstantValue(llvm::LLVMContext &context, llv
 
 static inline void storeConstantToPtr(llvm::IRBuilder<> &builder, llvm::ValueSymbolTable &table,
                                       llvm::LLVMContext &context, DOWorkRepresentation::NameGenerator &name,
-                                      llvm::Argument &arg, void *data)
+                                      llvm::Argument &arg, void *data, bool ptr)
 {
+	std::cout << "Storing a const ptr\n";
 	llvm::Value *arg_value = argumentToValue(table, arg);
+	std::cout << "Storing a const ptr\n";
 	llvm::Value *X = createAlignedAlloca(builder, arg, 8, name.next());
+	std::cout << "Storing a const ptr\n";
 	createAlignedStore(builder, arg_value, X, 8);
+	std::cout << "Storing a const ptr\n";
 	llvm::Value *Xptr = createAlignedLoad(builder, X, 8, name.next());
-	llvm::Value *constant = generateConstantValue(context, arg, data);
+	std::cout << "Storing a const ptr\n";
+	llvm::Value *constant = generateConstantValue(context, arg, data, ptr);
+	std::cout << "Storing a const ptr\n";
 	createAlignedStore(builder, constant, Xptr, 8);
+	std::cout << "Storing a const ptr\n";
 }
 
 static void optimise(llvm::Module *module)
@@ -214,7 +235,7 @@ static void optimise(llvm::Module *module)
 
 typedef llvm::Function::arg_iterator arg_iterator;
 
-static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data, std::vector<char> *satisfiedArguments)
+static inline void hardcode(llvm::Module *module, llvm::Function *function, void *data, std::vector<char> *satisfiedArguments, std::vector<bool> &_isPointerArgument)
 {
 	void **data_it = static_cast<void **>(data);
 	DOWorkRepresentation::NameGenerator name("_");
@@ -226,10 +247,12 @@ static inline void hardcode(llvm::Module *module, llvm::Function *function, void
 
 	int i;
 	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it, ++data_it, ++i){
+		std::cout << "In hardcode loop " << i << std::endl;
 
 		if (satisfiedArguments == NULL || static_cast<bool>(satisfiedArguments->at(i)))
-			storeConstantToPtr(builder, table, context, name, *it, *data_it);
+			storeConstantToPtr(builder, table, context, name, *it, data_it, _isPointerArgument.at(i));
 	}
+	printf("About to optimize\n");
 	optimise(module);
 
 	llvm::verifyFunction(*function);
@@ -243,7 +266,7 @@ static inline bool canRunNow(llvm::Function *function, std::vector<char> &satisf
 	int arg_num = 0;
 	int satisfied_count = 0;
 	for (std::vector<char>::iterator it = satisfiedArguments.begin(), E = satisfiedArguments.end(); it != E; ++it, ++arg_num)
-	{
+	{std::cout << "Loop\n";
 		if (*it == 0)
 		{
 			llvm::Value *arg_value = argumentToValue(table, *args);
@@ -260,6 +283,7 @@ static inline bool canRunNow(llvm::Function *function, std::vector<char> &satisf
 	}
 
 	bool result = (satisfied_count == arg_num );
+	std::cout << "done\n";
 	return result;
 /*
 	for (arg_iterator it = function->arg_begin(), E = function->arg_end(); it != E; ++it)
@@ -308,17 +332,22 @@ static inline DOWorkRepresentation::JITFunc doJIT(llvm::Module *module, llvm::Fu
 
 DOWorkRepresentation::JITFunc DOWorkRepresentation::JITCompile(void *data, std::vector<char> *satisfiedArguments)
 {
+	std::cout << "Start of JITCompile" << std::endl;
 	if (_llvmir_start == NULL)
 		return NULL;
 
 	llvm::Module *module = llvm::CloneModule(_module);
 	llvm::Function *unpacked_func = module->getFunction(_unpacked_name);
 	llvm::Function *packed_func = module->getFunction(_packed_name);
-	hardcode(module, unpacked_func, data, satisfiedArguments);
+	std::cout << "About to hardcode\n";
+	hardcode(module, unpacked_func, data, satisfiedArguments, _isPointerArgument);
+	std::cout << "Completed hardcoding\n";
 
 	if (satisfiedArguments && canRunNow(unpacked_func, *satisfiedArguments))
 		std::cout << "Can run task early" << std::endl;
 
 	JITFunc generated_function = doJIT(module, packed_func);
+
+	std::cout << "End of JITCompile" << std::endl;
 	return generated_function;
 }
